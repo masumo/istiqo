@@ -1,203 +1,672 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useUserStore } from '../../store/userStore';
+import { Trophy, Star, CheckCircle2, ArrowRight } from 'lucide-react';
 import confetti from 'canvas-confetti';
-import { Trophy } from 'lucide-react';
 import NurMascot from '../NurMascot/NurMascot';
-import { getTranslation } from '../../utils/i18n';
+import { useUserStore, t } from '../../store/userStore';
 
-const Quiz = ({ words, onComplete, onContinue = () => {} }) => {
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [options, setOptions] = useState([]);
-  const [selectedOption, setSelectedOption] = useState(null);
-  const [isCorrect, setIsCorrect] = useState(null);
-  const [score, setScore] = useState(0);
-  const [isCompleted, setIsCompleted] = useState(false);
-  const { preferredLanguage, recordQuizCompletion } = useUserStore();
+// ─────────────────────────────────────────────────────────────────────────────
+// Utilities
+// ─────────────────────────────────────────────────────────────────────────────
 
-  const currentWord = words[currentIndex];
+const shuffle = (arr) => {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+};
+
+const buildMCQOptions = (words, targetWord) => {
+  const correct = targetWord.translation;
+  const distractors = shuffle(
+    words.filter((w) => w.translation !== correct)
+  ).slice(0, 3).map((w) => w.translation);
+  return shuffle([correct, ...distractors]);
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Question Queue Builder  (8–10 items per lesson)
+// ─────────────────────────────────────────────────────────────────────────────
+const TARGET_QUESTIONS = 9;
+
+const buildQuestionQueue = (words) => {
+  if (!words || words.length === 0) return [];
+
+  const n    = words.length;
+  const half = Math.ceil(n / 2);
+  const queue = [];
+
+  // Phase 1 — introduce first half via MCQ
+  words.slice(0, half).forEach((w) => queue.push({ type: 'mcq', word: w }));
+
+  // Phase 2 — Matching Pairs (up to 6 words)
+  const g1 = words.slice(0, Math.min(6, n));
+  if (g1.length >= 3) queue.push({ type: 'match', words: g1 });
+
+  // Phase 3 — reinforce second half via MCQ
+  words.slice(half).forEach((w) => queue.push({ type: 'mcq', word: w }));
+
+  // Phase 4 — second Matching if N > 5
+  if (n > 5) {
+    const g2 = words.slice(Math.max(0, n - 5));
+    if (g2.length >= 3) queue.push({ type: 'match', words: g2 });
+  }
+
+  // Pad to TARGET by repeating MCQ for first few words
+  let padIdx = 0;
+  while (queue.length < TARGET_QUESTIONS) {
+    queue.push({ type: 'mcq', word: words[padIdx % n] });
+    padIdx++;
+    if (padIdx > n * 2) break;
+  }
+
+  return queue;
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// MCQ Question
+// ─────────────────────────────────────────────────────────────────────────────
+const MCQQuestion = ({ word, allWords, onAnswer }) => {
+  const options = useMemo(() => buildMCQOptions(allWords, word), [word, allWords]);
+  const [selected, setSelected] = useState(null);
+  const [locked, setLocked] = useState(false);
+
+  const handleClick = (option) => {
+    if (locked) return;
+    setSelected(option);
+    setLocked(true);
+    const correct = option === word.translation;
+    onAnswer(correct, option);
+  };
+
+  const getOptionStyle = (option) => {
+    const isSelected = selected === option;
+    const isCorrect  = option === word.translation;
+
+    const base = {
+      padding: '1.25rem',
+      borderRadius: '1rem',
+      borderWidth: '3px',
+      borderStyle: 'solid',
+      fontWeight: 700,
+      fontSize: '1.05rem',
+      textAlign: 'left',
+      cursor: locked ? 'default' : 'pointer',
+      userSelect: 'none',
+      transition: 'all 0.18s',
+      width: '100%',
+    };
+
+    if (!locked) {
+      return { ...base, background: '#fff', borderColor: '#e2e8f0', color: '#334155' };
+    }
+    if (isSelected && isCorrect)  return { ...base, background: '#f0fdf4', borderColor: '#58CC02', color: '#166534' };
+    if (isSelected && !isCorrect) return { ...base, background: '#fff1f2', borderColor: '#FF4B4B', color: '#991b1b' };
+    if (!isSelected && isCorrect) return { ...base, background: '#f0fdf4', borderColor: '#58CC02', color: '#166534' };
+    return { ...base, background: '#fff', borderColor: '#e2e8f0', color: '#94a3b8', opacity: 0.6 };
+  };
+
+  return (
+    <div className="grid grid-cols-1 gap-3 w-full">
+      {options.map((option, i) => (
+        <motion.button
+          key={i}
+          onClick={() => handleClick(option)}
+          disabled={locked}
+          style={getOptionStyle(option)}
+          animate={
+            locked && selected === option && option !== word.translation
+              ? { x: [0, -10, 10, -7, 7, -4, 4, 0] }
+              : {}
+          }
+          transition={{ duration: 0.5 }}
+          whileTap={{ scale: locked ? 1 : 0.97 }}
+        >
+          {option}
+        </motion.button>
+      ))}
+    </div>
+  );
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Matching Pairs — equal-height columns, Duolingo-accurate colors
+// ─────────────────────────────────────────────────────────────────────────────
+const MatchingPairs = ({ words, onComplete }) => {
+  const count = Math.min(words.length, 6);
+  const pairs = useMemo(() => words.slice(0, count), [words, count]);
+
+  const [leftItems]  = useState(() => pairs.map((w, i) => ({ id: i, text: w.arabic,      pairId: i })));
+  const [rightItems] = useState(() => shuffle(pairs.map((w, i) => ({ id: i, text: w.translation, pairId: i }))));
+
+  const [selLeft,    setSelLeft]    = useState(null);
+  const [selRight,   setSelRight]   = useState(null);
+  const [matched,    setMatched]    = useState(new Set());
+  const [wrongLeft,  setWrongLeft]  = useState(null);
+  const [wrongRight, setWrongRight] = useState(null);
+  const [score,      setScore]      = useState(0);
+  const [done,       setDone]       = useState(false);
 
   useEffect(() => {
-    if (!words || words.length === 0 || currentIndex >= words.length) return;
-    
-    const current = words[currentIndex];
-    if (!current) return;
-    
-    // Generate options only when currentIndex changes
-    const correct = current.translation;
-    const others = words
-      .filter((w, idx) => idx !== currentIndex && w.translation !== correct)
-      .sort(() => 0.5 - Math.random())
-      .slice(0, 3)
-      .map(w => w.translation);
-    
-    const allOptions = [correct, ...others].sort(() => 0.5 - Math.random());
-    setOptions(allOptions);
-  }, [currentIndex, words]);
-
-  const handleOptionClick = (option) => {
-    if (selectedOption !== null) return;
-
-    setSelectedOption(option);
-    const correct = option === currentWord.translation;
-    setIsCorrect(correct);
-
-    if (correct) {
-      setScore(prev => prev + 1);
+    if (!done && matched.size === count) {
+      setDone(true);
+      setTimeout(() => onComplete(score, count), 500);
     }
-  };
+  }, [matched, count, done, score, onComplete]);
 
-  const handleNext = () => {
-    if (isCompleted) return; // Prevent multiple calls
-    
-    if (currentIndex < words.length - 1) {
-      // Move to next question - reset state first, then increment
-      setSelectedOption(null);
-      setIsCorrect(null);
-      setCurrentIndex(prev => prev + 1);
+  const tryMatch = useCallback((left, right) => {
+    const ok = left.pairId === right.pairId;
+    if (ok) {
+      setMatched((prev) => { const s = new Set(prev); s.add(left.pairId); return s; });
+      setScore((s) => s + 1);
     } else {
-      // End of quiz
-      setIsCompleted(true);
-      const finalScore = score;
-      const isPerfect = finalScore === words.length;
-      
-      // Record quiz completion XP
-      recordQuizCompletion(finalScore, words.length);
+      setWrongLeft(left.id);
+      setWrongRight(right.id);
+      setTimeout(() => { setWrongLeft(null); setWrongRight(null); }, 650);
+    }
+    setSelLeft(null);
+    setSelRight(null);
+  }, []);
 
+  const handleLeft = (item) => {
+    if (matched.has(item.pairId) || wrongLeft !== null) return;
+    const next = selLeft?.id === item.id ? null : item;
+    setSelLeft(next);
+    if (next && selRight) tryMatch(next, selRight);
+  };
+
+  const handleRight = (item) => {
+    if (matched.has(item.pairId) || wrongRight !== null) return;
+    const next = selRight?.id === item.id ? null : item;
+    setSelRight(next);
+    if (next && selLeft) tryMatch(selLeft, next);
+  };
+
+  const leftState  = (item) => matched.has(item.pairId) ? 'matched' : wrongLeft  === item.id ? 'wrong' : selLeft?.id  === item.id ? 'selected' : 'idle';
+  const rightState = (item) => matched.has(item.pairId) ? 'matched' : wrongRight === item.id ? 'wrong' : selRight?.id === item.id ? 'selected' : 'idle';
+
+  // ── Inline styles for crisp Duolingo-accurate colors ──────────────────────
+  const getLeftStyle = (state) => ({
+    width: '100%',
+    height: '100%',
+    padding: '0.75rem 0.625rem',
+    borderRadius: '1rem',
+    borderWidth: '3px',
+    borderStyle: 'solid',
+    fontWeight: 700,
+    fontSize: '1.5rem',
+    direction: 'rtl',
+    textAlign: 'right',
+    lineHeight: 1.5,
+    cursor: state === 'matched' ? 'default' : 'pointer',
+    userSelect: 'none',
+    transition: 'all 0.15s',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    ...(state === 'matched'  && { background: '#f0fdf4', borderColor: '#58CC02', color: '#166534' }),
+    ...(state === 'wrong'    && { background: '#fff1f2', borderColor: '#FF4B4B', color: '#991b1b' }),
+    ...(state === 'selected' && { background: '#E1F5FE', borderColor: '#38bdf8', color: '#0c4a6e', transform: 'scale(1.04)', boxShadow: '0 4px 16px rgba(14,165,233,0.18)' }),
+    ...(state === 'idle'     && { background: '#fff', borderColor: '#e2e8f0', color: '#1e293b' }),
+  });
+
+  const getRightStyle = (state) => ({
+    width: '100%',
+    height: '100%',
+    padding: '0.75rem 0.625rem',
+    borderRadius: '1rem',
+    borderWidth: '3px',
+    borderStyle: 'solid',
+    fontWeight: 600,
+    fontSize: '0.85rem',
+    textAlign: 'left',
+    lineHeight: 1.35,
+    cursor: state === 'matched' ? 'default' : 'pointer',
+    userSelect: 'none',
+    transition: 'all 0.15s',
+    display: 'flex',
+    alignItems: 'center',
+    ...(state === 'matched'  && { background: '#f0fdf4', borderColor: '#58CC02', color: '#166534' }),
+    ...(state === 'wrong'    && { background: '#fff1f2', borderColor: '#FF4B4B', color: '#991b1b' }),
+    ...(state === 'selected' && { background: '#E1F5FE', borderColor: '#38bdf8', color: '#0c4a6e', transform: 'scale(1.04)', boxShadow: '0 4px 16px rgba(14,165,233,0.18)' }),
+    ...(state === 'idle'     && { background: '#fff', borderColor: '#e2e8f0', color: '#475569' }),
+  });
+
+  return (
+    <div className="w-full space-y-3">
+      {/* Equal-height grid: items-stretch ensures both columns match row for row */}
+      <div className="grid grid-cols-2 gap-3 items-stretch">
+        {/* Left — Arabic */}
+        <div className="flex flex-col gap-3">
+          {leftItems.map((item) => {
+            const state = leftState(item);
+            return (
+              <motion.button
+                key={item.id}
+                onClick={() => handleLeft(item)}
+                disabled={matched.has(item.pairId)}
+                style={getLeftStyle(state)}
+                animate={state === 'wrong' ? { x: [0, -9, 9, -6, 6, -3, 3, 0] } : {}}
+                transition={{ duration: 0.45 }}
+                whileTap={{ scale: matched.has(item.pairId) ? 1 : 0.95 }}
+              >
+                {item.text}
+              </motion.button>
+            );
+          })}
+        </div>
+
+        {/* Right — Translation */}
+        <div className="flex flex-col gap-3">
+          {rightItems.map((item) => {
+            const state = rightState(item);
+            return (
+              <motion.button
+                key={item.id}
+                onClick={() => handleRight(item)}
+                disabled={matched.has(item.pairId)}
+                style={getRightStyle(state)}
+                animate={state === 'wrong' ? { x: [0, 9, -9, 6, -6, 3, -3, 0] } : {}}
+                transition={{ duration: 0.45 }}
+                whileTap={{ scale: matched.has(item.pairId) ? 1 : 0.95 }}
+              >
+                {item.text}
+              </motion.button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Progress dots */}
+      <div className="flex justify-center gap-2 mt-1">
+        {pairs.map((_, i) => (
+          <motion.div
+            key={i}
+            className="w-2.5 h-2.5 rounded-full"
+            animate={{ backgroundColor: matched.has(i) ? '#58CC02' : '#e2e8f0' }}
+            transition={{ duration: 0.3 }}
+          />
+        ))}
+      </div>
+    </div>
+  );
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Results Screen — always shows Nur + confetti + score summary
+// ─────────────────────────────────────────────────────────────────────────────
+const ResultsScreen = ({ score, total, xpEarned, lang, lessonNum, totalLessons, onContinue }) => {
+  const isPerfect = score === total;
+  const pct       = Math.round((score / Math.max(total, 1)) * 100);
+
+  // Confetti fires once on mount (already triggered in finishQuiz, but fire here too for safety)
+  useEffect(() => {
+    const t = setTimeout(() => {
       if (isPerfect) {
-        // Show confetti for perfect score
-        confetti({
-          particleCount: 150,
-          spread: 70,
-          origin: { y: 0.6 }
-        });
+        confetti({ particleCount: 240, spread: 95, origin: { y: 0.45 } });
+      } else {
+        confetti({ particleCount: 110, spread: 70, origin: { y: 0.5 } });
       }
-      
-      onComplete(finalScore);
+    }, 80);
+    return () => clearTimeout(t);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 30 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.35 }}
+      className="w-full max-w-lg flex flex-col items-center space-y-6 p-4"
+    >
+      <div className="w-full bg-white rounded-[2.5rem] shadow-2xl border-4 border-slate-50 p-8 flex flex-col items-center space-y-6">
+
+        {/* Lesson label */}
+        <div className="text-xs font-black uppercase tracking-widest text-emerald-600 bg-emerald-50 px-4 py-1.5 rounded-full">
+          {t(lang, 'lesson.label')} {lessonNum} {t(lang, 'lesson.of')} {totalLessons}
+        </div>
+
+        {/* Nur mascot — always rendered */}
+        <NurMascot mood="celebrate" size={180} />
+
+        {/* Headline */}
+        <h2 className="text-3xl font-extrabold text-slate-800 text-center">
+          {isPerfect ? t(lang, 'quiz.perfect_score') : t(lang, 'quiz.completed')}
+        </h2>
+
+        {/* Stat cards */}
+        <div className="grid grid-cols-3 gap-3 w-full">
+          <div className="flex flex-col items-center gap-1 bg-slate-50 rounded-2xl p-4">
+            <Trophy className="w-6 h-6 text-amber-500" />
+            <span className="text-2xl font-black text-slate-800">{score}/{total}</span>
+            <span className="text-[10px] uppercase tracking-widest font-bold text-slate-400">
+              {t(lang, 'quiz.score')}
+            </span>
+          </div>
+          <div className="flex flex-col items-center gap-1 bg-slate-50 rounded-2xl p-4">
+            <CheckCircle2 className="w-6 h-6 text-emerald-500" />
+            <span className="text-2xl font-black text-emerald-600">{pct}%</span>
+            <span className="text-[10px] uppercase tracking-widest font-bold text-slate-400">
+              Accuracy
+            </span>
+          </div>
+          <div className="flex flex-col items-center gap-1 bg-amber-50 rounded-2xl p-4">
+            <Star className="w-6 h-6 text-amber-500 fill-amber-400" />
+            <span className="text-2xl font-black text-amber-600">+{xpEarned}</span>
+            <span className="text-[10px] uppercase tracking-widest font-bold text-slate-400">XP</span>
+          </div>
+        </div>
+
+        {/* Continue */}
+        <motion.button
+          onClick={onContinue}
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.97 }}
+          className="w-full py-5 rounded-2xl font-black text-xl text-white shadow-lg transition-colors"
+          style={{ background: '#58CC02', boxShadow: '0 6px 24px rgba(88,204,2,0.3)' }}
+        >
+          {t(lang, 'quiz.continue')}
+        </motion.button>
+      </div>
+    </motion.div>
+  );
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Main Quiz Component
+// ─────────────────────────────────────────────────────────────────────────────
+/**
+ * Quiz
+ *
+ * Props:
+ *   words        — [{ arabic, translation }]  lesson words
+ *   lessonIndex  — zero-based lesson number
+ *   totalLessons — total lessons in unit
+ *   unitKey      — e.g. "1:1"
+ *   onComplete   — (score, total) => void  (called after quiz, before results)
+ *   onContinue   — () => void              (called when user taps Continue)
+ */
+const Quiz = ({
+  words       = [],
+  lessonIndex  = 0,
+  totalLessons = 1,
+  unitKey      = 'unit',
+  onComplete   = () => {},
+  onContinue   = () => {},
+}) => {
+  const { preferredLanguage, completeLesson } = useUserStore();
+  const lang       = preferredLanguage || 'en';
+  const safeWords  = useMemo(() => (Array.isArray(words) ? words.filter(Boolean) : []), [words]);
+
+  // ── Working question queue ───────────────────────────────────────────────
+  const [workingQueue, setWorkingQueue] = useState(() => buildQuestionQueue(safeWords));
+  const [qIdx,         setQIdx]         = useState(0);
+  const [mcqAnswered,  setMcqAnswered]  = useState(null);
+
+  const [correctCount,  setCorrectCount]  = useState(0);
+  const [initialTotal,  setInitialTotal]  = useState(() => buildQuestionQueue(safeWords).length);
+
+  // Results — use a pending flag + 500ms delay for smooth transition
+  const [showResults,  setShowResults]  = useState(false);
+  const [resultsReady, setResultsReady] = useState(false);
+  const [xpEarned,     setXpEarned]     = useState(0);
+
+  // Re-init if words change
+  useEffect(() => {
+    const q = buildQuestionQueue(safeWords);
+    setWorkingQueue(q);
+    setInitialTotal(q.length);
+    setQIdx(0);
+    setMcqAnswered(null);
+    setCorrectCount(0);
+    setShowResults(false);
+    setResultsReady(false);
+  }, [safeWords]);
+
+  const currentQuestion = workingQueue[qIdx] || null;
+  const progressPct     = initialTotal > 0 ? Math.min((qIdx / initialTotal) * 100, 100) : 0;
+
+  // ── Advance queue ─────────────────────────────────────────────────────────
+  const advance = useCallback(
+    (wasCorrect, wrongWord) => {
+      setWorkingQueue((prev) => {
+        const next = [...prev];
+        if (!wasCorrect && wrongWord) {
+          next.push({ type: 'mcq', word: wrongWord, isRetry: true });
+        }
+        return next;
+      });
+      setQIdx((i) => i + 1);
+      setMcqAnswered(null);
+    },
+    []
+  );
+
+  // ── Finish quiz — 500ms delay before showing results ─────────────────────
+  const finishQuiz = useCallback(
+    (finalCorrect) => {
+      const result = completeLesson(
+        unitKey, lessonIndex, totalLessons,
+        finalCorrect, initialTotal
+      );
+      const earned = result?.xpEarned ?? 0;
+      setXpEarned(earned);
+      onComplete(finalCorrect, initialTotal);
+
+      // Trigger confetti immediately on finish (before card disappears)
+      const isPerfect = finalCorrect === initialTotal;
+      setTimeout(() => {
+        if (isPerfect) {
+          confetti({ particleCount: 240, spread: 95, origin: { y: 0.45 } });
+        } else {
+          confetti({ particleCount: 110, spread: 70, origin: { y: 0.5 } });
+        }
+      }, 100);
+
+      // Show pending overlay, then reveal results after 500ms
+      setShowResults(true);
+      setTimeout(() => setResultsReady(true), 500);
+    },
+    [completeLesson, unitKey, lessonIndex, totalLessons, initialTotal, onComplete]
+  );
+
+  // ── Detect queue exhaustion ───────────────────────────────────────────────
+  useEffect(() => {
+    if (!showResults && workingQueue.length > 0 && qIdx >= workingQueue.length) {
+      finishQuiz(correctCount);
+    }
+  }, [qIdx, workingQueue.length, showResults, correctCount, finishQuiz]);
+
+  // ── MCQ handlers ─────────────────────────────────────────────────────────
+  const handleMCQAnswer = (correct, option) => {
+    if (!currentQuestion?.word) return;
+    setMcqAnswered({ correct, option });
+    if (correct && !currentQuestion.isRetry) {
+      setCorrectCount((c) => c + 1);
     }
   };
 
-  // Quiz Results Screen
-  if (isCompleted) {
+  const handleMCQNext = () => {
+    if (!mcqAnswered) return;
+    advance(mcqAnswered.correct, mcqAnswered.correct ? null : currentQuestion?.word);
+  };
+
+  // ── Matching complete ─────────────────────────────────────────────────────
+  const handleMatchComplete = useCallback(
+    (matchScore, matchTotal) => {
+      if (!currentQuestion?.isRetry) {
+        setCorrectCount((c) => c + (matchScore === matchTotal ? 1 : 0));
+      }
+      advance(matchScore === matchTotal, null);
+    },
+    [advance, currentQuestion]
+  );
+
+  // ── Results: pending overlay (500ms transition) ───────────────────────────
+  if (showResults) {
+    if (!resultsReady) {
+      // Smooth fade-out: blank white screen for 500ms before results appear
+      return (
+        <motion.div
+          initial={{ opacity: 1 }}
+          animate={{ opacity: 0 }}
+          transition={{ duration: 0.4 }}
+          className="w-full max-w-lg flex items-center justify-center p-8"
+          style={{ minHeight: 340 }}
+        >
+          <div className="w-16 h-16 rounded-full border-4 border-emerald-200 border-t-emerald-500 animate-spin" />
+        </motion.div>
+      );
+    }
     return (
-      <div className="w-full max-w-lg flex flex-col items-center space-y-8 p-4">
+      <ResultsScreen
+        score={correctCount}
+        total={initialTotal}
+        xpEarned={xpEarned}
+        lang={lang}
+        lessonNum={lessonIndex + 1}
+        totalLessons={totalLessons}
+        onContinue={onContinue}
+      />
+    );
+  }
+
+  if (!currentQuestion || safeWords.length === 0) return null;
+
+  // ── Lesson badge ──────────────────────────────────────────────────────────
+  const LessonBadge = () => (
+    <div className="w-full flex items-center justify-between px-1 mb-1">
+      <span className="text-xs font-black uppercase tracking-widest text-emerald-700 bg-emerald-50 border border-emerald-200 px-3 py-1 rounded-full">
+        {t(lang, 'lesson.label')} {lessonIndex + 1} {t(lang, 'lesson.of')} {totalLessons}
+      </span>
+      <span className="text-xs font-bold text-slate-400 tabular-nums">
+        {qIdx + 1}
+        <span className="text-slate-300"> / {workingQueue.length}</span>
+      </span>
+    </div>
+  );
+
+  // ── MCQ ───────────────────────────────────────────────────────────────────
+  if (currentQuestion.type === 'mcq') {
+    const word = currentQuestion.word;
+    return (
+      <div className="w-full max-w-lg flex flex-col items-center space-y-4 p-4">
+        <LessonBadge />
+
+        {/* Progress bar */}
+        <div className="w-full h-2.5 bg-slate-100 rounded-full overflow-hidden">
+          <motion.div
+            className="h-full rounded-full"
+            style={{ background: '#58CC02' }}
+            animate={{ width: `${progressPct}%` }}
+            transition={{ duration: 0.4 }}
+          />
+        </div>
+
+        {currentQuestion.isRetry && (
+          <div className="w-full text-center text-xs font-bold text-amber-600 bg-amber-50 border border-amber-200 rounded-xl py-1.5">
+            🔄 {lang === 'id' ? 'Coba lagi kata yang salah' : 'Retry — you missed this one!'}
+          </div>
+        )}
+
         <AnimatePresence mode="wait">
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
+            key={`mcq-${qIdx}`}
+            initial={{ opacity: 0, y: 18 }}
             animate={{ opacity: 1, y: 0 }}
-            className="w-full bg-white rounded-[2.5rem] shadow-2xl p-8 border-4 border-slate-50 flex flex-col items-center space-y-8"
+            exit={{ opacity: 0, y: -18 }}
+            className="w-full bg-white rounded-[2.5rem] shadow-2xl border-4 border-slate-50 p-8 flex flex-col items-center space-y-6"
           >
-            {/* Nur Mascot Celebration */}
-            <NurMascot
-              variant={score === words.length ? 'celebrate' : 'reading'}
-              className="w-48 h-48 mb-4"
+            <div className="text-xs font-black uppercase tracking-widest text-slate-400">
+              {t(lang, 'quiz.title')}
+            </div>
+
+            {/* Arabic word */}
+            <div className="text-center py-2">
+              <span
+                className="text-7xl font-bold text-slate-800 leading-relaxed"
+                style={{ fontFamily: 'Amiri, serif' }}
+                dir="rtl"
+              >
+                {word?.arabic}
+              </span>
+            </div>
+
+            <MCQQuestion
+              word={word}
+              allWords={safeWords}
+              onAnswer={handleMCQAnswer}
             />
 
-            <div className="text-center space-y-4">
-              <h2 className="text-3xl font-bold text-slate-800">
-                {score === words.length 
-                  ? getTranslation(preferredLanguage, 'quiz.perfect_score') 
-                  : getTranslation(preferredLanguage, 'quiz.completed')}
-              </h2>
-              
-              <div className="flex items-center justify-center space-x-4 mb-4">
-                <Trophy className="text-amber-500 w-12 h-12" />
-                <span className="text-5xl font-bold text-emerald-600">
-                  {getTranslation(preferredLanguage, 'quiz.score')}: {score} / {words.length}
-                </span>
-              </div>
-
-              <div className="text-2xl font-semibold text-slate-700 mb-4">
-                +{score * 10} XP
-              </div>
-
-              {/* Continue Button */}
-              <button
-                onClick={() => {
-                  recordQuizCompletion(score, words.length);
-                  onContinue(); // Use the passed continue handler
-                }}
-                className="w-full py-5 mt-6 bg-emerald-600 text-white rounded-2xl font-bold text-xl hover:bg-emerald-700 shadow-lg shadow-emerald-200 transition-all"
-              >
-                {getTranslation(preferredLanguage, 'unit.continue')}
-              </button>
-            </div>
+            <AnimatePresence>
+              {mcqAnswered && (
+                <motion.button
+                  key="next-btn"
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  onClick={handleMCQNext}
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.97 }}
+                  className="w-full py-5 rounded-2xl font-black text-xl text-white shadow-lg transition-colors flex items-center justify-center gap-3"
+                  style={
+                    mcqAnswered.correct
+                      ? { background: '#58CC02', boxShadow: '0 6px 20px rgba(88,204,2,0.28)' }
+                      : { background: '#475569', boxShadow: '0 6px 20px rgba(71,85,105,0.2)' }
+                  }
+                >
+                  {mcqAnswered.correct
+                    ? (qIdx < workingQueue.length - 1 ? t(lang, 'next') : t(lang, 'quiz.continue'))
+                    : (lang === 'id' ? 'Coba lagi nanti →' : 'Got it →')
+                  }
+                  <ArrowRight className="w-5 h-5" />
+                </motion.button>
+              )}
+            </AnimatePresence>
           </motion.div>
         </AnimatePresence>
       </div>
     );
   }
 
-  // Guard: prevent rendering if no current word
-  if (!currentWord) {
-    return null;
-  }
-
+  // ── Matching Pairs ────────────────────────────────────────────────────────
   return (
-    <div className="w-full max-w-lg flex flex-col items-center space-y-8 p-4">
-      {/* Progress Indicator */}
-      <div className="w-full flex items-center justify-between px-2">
-        <span className="text-sm font-bold text-slate-600">
-          {getTranslation(preferredLanguage, 'quiz')} {currentIndex + 1} / {words.length}
-        </span>
-        <span className="text-sm font-bold text-amber-600">
-          {getTranslation(preferredLanguage, 'quiz.score')}: {score}/{words.length}
-        </span>
+    <div className="w-full max-w-lg flex flex-col items-center space-y-4 p-4">
+      <LessonBadge />
+
+      {/* Progress bar */}
+      <div className="w-full h-2.5 bg-slate-100 rounded-full overflow-hidden">
+        <motion.div
+          className="h-full rounded-full"
+          style={{ background: '#38bdf8' }}
+          animate={{ width: `${progressPct}%` }}
+          transition={{ duration: 0.4 }}
+        />
       </div>
 
       <AnimatePresence mode="wait">
         <motion.div
-          key={currentIndex}
-          initial={{ opacity: 0, y: 20 }}
+          key={`match-${qIdx}`}
+          initial={{ opacity: 0, y: 18 }}
           animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -20 }}
-          className="w-full bg-white rounded-[2.5rem] shadow-2xl p-8 border-4 border-slate-50 flex flex-col items-center space-y-8"
+          exit={{ opacity: 0, y: -18 }}
+          className="w-full bg-white rounded-[2.5rem] shadow-2xl border-4 border-slate-50 p-6 flex flex-col items-center space-y-4"
         >
-          <h2 className="text-xl font-bold text-slate-400 uppercase tracking-widest">
-            {getTranslation(preferredLanguage, 'quiz')}
-          </h2>
-          
-          <div className="text-center space-y-4">
-            <h1 className="text-7xl font-amiri font-bold text-slate-800 leading-relaxed" dir="rtl">
-              {currentWord.arabic}
-            </h1>
+          <div className="flex flex-col items-center gap-1">
+            <div className="text-xs font-black uppercase tracking-widest text-slate-400">
+              {t(lang, 'quiz.matchTitle')}
+            </div>
+            <p className="text-sm text-slate-500 text-center">
+              {lang === 'id'
+                ? 'Ketuk kata Arab, lalu ketuk artinya yang cocok.'
+                : 'Tap an Arabic word, then tap its matching meaning.'}
+            </p>
           </div>
 
-          <div className="grid grid-cols-1 gap-3 w-full">
-            {options.map((option, index) => (
-              <button
-                key={index}
-                onClick={() => handleOptionClick(option)}
-                disabled={selectedOption !== null}
-                className={`p-5 rounded-2xl border-4 font-bold text-xl transition-all text-left flex items-center justify-between ${
-                  selectedOption === option
-                    ? option === currentWord.translation
-                      ? 'bg-emerald-50 border-emerald-500 text-emerald-700'
-                      : 'bg-red-50 border-red-500 text-red-700'
-                    : selectedOption !== null && option === currentWord.translation
-                    ? 'bg-emerald-50 border-emerald-500 text-emerald-700'
-                    : 'bg-white border-slate-100 text-slate-600 hover:border-slate-200'
-                }`}
-              >
-                <span>{option}</span>
-              </button>
-            ))}
-          </div>
-
-          <AnimatePresence>
-            {selectedOption !== null && (
-              <motion.button
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                onClick={handleNext}
-                className="w-full py-5 bg-emerald-600 text-white rounded-2xl font-bold text-xl hover:bg-emerald-700 shadow-lg shadow-emerald-200 transition-all"
-              >
-                {currentIndex < words.length - 1 
-                  ? getTranslation(preferredLanguage, 'next') 
-                  : getTranslation(preferredLanguage, 'unit.continue')}
-              </motion.button>
-            )}
-          </AnimatePresence>
+          <MatchingPairs
+            words={currentQuestion.words}
+            onComplete={handleMatchComplete}
+          />
         </motion.div>
       </AnimatePresence>
     </div>

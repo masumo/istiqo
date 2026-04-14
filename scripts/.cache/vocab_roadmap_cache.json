@@ -1,0 +1,2704 @@
+{
+  "byRank": {
+    "1": {
+      "rank": 1,
+      "word": "من",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "2": {
+      "rank": 2,
+      "word": "الله",
+      "translation": {
+        "id": "Allah",
+        "en": "(of) Allah"
+      },
+      "context_verse": "1:1"
+    },
+    "3": {
+      "rank": 3,
+      "word": "في",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "4": {
+      "rank": 4,
+      "word": "ما",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "5": {
+      "rank": 5,
+      "word": "إن",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "6": {
+      "rank": 6,
+      "word": "لا",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "7": {
+      "rank": 7,
+      "word": "الذين",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "8": {
+      "rank": 8,
+      "word": "على",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "9": {
+      "rank": 9,
+      "word": "إلا",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "10": {
+      "rank": 10,
+      "word": "ولا",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "11": {
+      "rank": 11,
+      "word": "وما",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "12": {
+      "rank": 12,
+      "word": "أن",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "13": {
+      "rank": 13,
+      "word": "قال",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "14": {
+      "rank": 14,
+      "word": "إلى",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "15": {
+      "rank": 15,
+      "word": "لهم",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "16": {
+      "rank": 16,
+      "word": "يا",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "17": {
+      "rank": 17,
+      "word": "ومن",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "18": {
+      "rank": 18,
+      "word": "ثم",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "19": {
+      "rank": 19,
+      "word": "لكم",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "20": {
+      "rank": 20,
+      "word": "به",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "21": {
+      "rank": 21,
+      "word": "كان",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "22": {
+      "rank": 22,
+      "word": "بما",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "23": {
+      "rank": 23,
+      "word": "قل",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "24": {
+      "rank": 24,
+      "word": "الأرض",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "25": {
+      "rank": 25,
+      "word": "ذلك",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "26": {
+      "rank": 26,
+      "word": "أو",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "27": {
+      "rank": 27,
+      "word": "له",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "28": {
+      "rank": 28,
+      "word": "الذي",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "29": {
+      "rank": 29,
+      "word": "هو",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "30": {
+      "rank": 30,
+      "word": "آمنوا",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "31": {
+      "rank": 31,
+      "word": "هم",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "32": {
+      "rank": 32,
+      "word": "وإن",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "33": {
+      "rank": 33,
+      "word": "قالوا",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "34": {
+      "rank": 34,
+      "word": "كل",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "35": {
+      "rank": 35,
+      "word": "فيها",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "36": {
+      "rank": 36,
+      "word": "والله",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "37": {
+      "rank": 37,
+      "word": "كانوا",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "38": {
+      "rank": 38,
+      "word": "عن",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "39": {
+      "rank": 39,
+      "word": "إذا",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "40": {
+      "rank": 40,
+      "word": "ربك",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "41": {
+      "rank": 41,
+      "word": "يوم",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "42": {
+      "rank": 42,
+      "word": "عليهم",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "43": {
+      "rank": 43,
+      "word": "شيء",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "44": {
+      "rank": 44,
+      "word": "هذا",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "45": {
+      "rank": 45,
+      "word": "كفروا",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "46": {
+      "rank": 46,
+      "word": "كنتم",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "47": {
+      "rank": 47,
+      "word": "السماوات",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "48": {
+      "rank": 48,
+      "word": "الناس",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "49": {
+      "rank": 49,
+      "word": "لم",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "50": {
+      "rank": 50,
+      "word": "وهو",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "51": {
+      "rank": 51,
+      "word": "فإن",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "52": {
+      "rank": 52,
+      "word": "إذ",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "53": {
+      "rank": 53,
+      "word": "والذين",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "54": {
+      "rank": 54,
+      "word": "عليكم",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "55": {
+      "rank": 55,
+      "word": "الكتاب",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "56": {
+      "rank": 56,
+      "word": "والأرض",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "57": {
+      "rank": 57,
+      "word": "فلا",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "58": {
+      "rank": 58,
+      "word": "إنا",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "59": {
+      "rank": 59,
+      "word": "منهم",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "60": {
+      "rank": 60,
+      "word": "عذاب",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "61": {
+      "rank": 61,
+      "word": "أيها",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "62": {
+      "rank": 62,
+      "word": "إنه",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "63": {
+      "rank": 63,
+      "word": "بعد",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "64": {
+      "rank": 64,
+      "word": "عليه",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "65": {
+      "rank": 65,
+      "word": "حتى",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "66": {
+      "rank": 66,
+      "word": "بالله",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "67": {
+      "rank": 67,
+      "word": "وهم",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "68": {
+      "rank": 68,
+      "word": "وإذا",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "69": {
+      "rank": 69,
+      "word": "أولئك",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "70": {
+      "rank": 70,
+      "word": "إني",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "71": {
+      "rank": 71,
+      "word": "أم",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "72": {
+      "rank": 72,
+      "word": "رب",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "73": {
+      "rank": 73,
+      "word": "موسى",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "74": {
+      "rank": 74,
+      "word": "ولقد",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "75": {
+      "rank": 75,
+      "word": "بل",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "76": {
+      "rank": 76,
+      "word": "فيه",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "77": {
+      "rank": 77,
+      "word": "قد",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "78": {
+      "rank": 78,
+      "word": "قوم",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "79": {
+      "rank": 79,
+      "word": "عند",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "80": {
+      "rank": 80,
+      "word": "قبل",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "81": {
+      "rank": 81,
+      "word": "لله",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "82": {
+      "rank": 82,
+      "word": "خير",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "83": {
+      "rank": 83,
+      "word": "يشاء",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "84": {
+      "rank": 84,
+      "word": "الدنيا",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "85": {
+      "rank": 85,
+      "word": "إنما",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "86": {
+      "rank": 86,
+      "word": "ولكن",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "87": {
+      "rank": 87,
+      "word": "مما",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "88": {
+      "rank": 88,
+      "word": "ربهم",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "89": {
+      "rank": 89,
+      "word": "ولو",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "90": {
+      "rank": 90,
+      "word": "السماء",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "91": {
+      "rank": 91,
+      "word": "الحق",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "92": {
+      "rank": 92,
+      "word": "منكم",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "93": {
+      "rank": 93,
+      "word": "عليم",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "94": {
+      "rank": 94,
+      "word": "ربنا",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "95": {
+      "rank": 95,
+      "word": "ربكم",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "96": {
+      "rank": 96,
+      "word": "النار",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "97": {
+      "rank": 97,
+      "word": "فلما",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "98": {
+      "rank": 98,
+      "word": "ألا",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "99": {
+      "rank": 99,
+      "word": "أنزل",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "100": {
+      "rank": 100,
+      "word": "لمن",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "101": {
+      "rank": 101,
+      "word": "ربي",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "102": {
+      "rank": 102,
+      "word": "دون",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "103": {
+      "rank": 103,
+      "word": "فمن",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "104": {
+      "rank": 104,
+      "word": "منه",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "105": {
+      "rank": 105,
+      "word": "سبيل",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "106": {
+      "rank": 106,
+      "word": "فإذا",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "107": {
+      "rank": 107,
+      "word": "فما",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "108": {
+      "rank": 108,
+      "word": "كذلك",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "109": {
+      "rank": 109,
+      "word": "منها",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "110": {
+      "rank": 110,
+      "word": "يؤمنون",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "111": {
+      "rank": 111,
+      "word": "وقال",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "112": {
+      "rank": 112,
+      "word": "العذاب",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "113": {
+      "rank": 113,
+      "word": "مبين",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "114": {
+      "rank": 114,
+      "word": "وكان",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "115": {
+      "rank": 115,
+      "word": "لنا",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "116": {
+      "rank": 116,
+      "word": "خلق",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "117": {
+      "rank": 117,
+      "word": "تعملون",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "118": {
+      "rank": 118,
+      "word": "يعلمون",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "119": {
+      "rank": 119,
+      "word": "أنتم",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "120": {
+      "rank": 120,
+      "word": "بين",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "121": {
+      "rank": 121,
+      "word": "للذين",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "122": {
+      "rank": 122,
+      "word": "لو",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "123": {
+      "rank": 123,
+      "word": "بها",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "124": {
+      "rank": 124,
+      "word": "ألم",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "125": {
+      "rank": 125,
+      "word": "المؤمنين",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "126": {
+      "rank": 126,
+      "word": "إليك",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "127": {
+      "rank": 127,
+      "word": "شيئا",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "128": {
+      "rank": 128,
+      "word": "إليه",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "129": {
+      "rank": 129,
+      "word": "عنهم",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "130": {
+      "rank": 130,
+      "word": "لما",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "131": {
+      "rank": 131,
+      "word": "بالحق",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "132": {
+      "rank": 132,
+      "word": "ربه",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "133": {
+      "rank": 133,
+      "word": "إله",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "134": {
+      "rank": 134,
+      "word": "جهنم",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "135": {
+      "rank": 135,
+      "word": "أنفسهم",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "136": {
+      "rank": 136,
+      "word": "وإذ",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "137": {
+      "rank": 137,
+      "word": "الآخرة",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "138": {
+      "rank": 138,
+      "word": "يعلم",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "139": {
+      "rank": 139,
+      "word": "لك",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "140": {
+      "rank": 140,
+      "word": "القيامة",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "141": {
+      "rank": 141,
+      "word": "وأن",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "142": {
+      "rank": 142,
+      "word": "غير",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "143": {
+      "rank": 143,
+      "word": "فرعون",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "144": {
+      "rank": 144,
+      "word": "هل",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "145": {
+      "rank": 145,
+      "word": "أنا",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "146": {
+      "rank": 146,
+      "word": "ورسوله",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "147": {
+      "rank": 147,
+      "word": "قلوبهم",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "148": {
+      "rank": 148,
+      "word": "يومئذ",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "149": {
+      "rank": 149,
+      "word": "نحن",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "150": {
+      "rank": 150,
+      "word": "العزيز",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "151": {
+      "rank": 151,
+      "word": "الظالمين",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "152": {
+      "rank": 152,
+      "word": "كنا",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "153": {
+      "rank": 153,
+      "word": "الحياة",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "154": {
+      "rank": 154,
+      "word": "إنهم",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "155": {
+      "rank": 155,
+      "word": "الشيطان",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "156": {
+      "rank": 156,
+      "word": "لي",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "157": {
+      "rank": 157,
+      "word": "أصحاب",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "158": {
+      "rank": 158,
+      "word": "إبراهيم",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "159": {
+      "rank": 159,
+      "word": "كيف",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "160": {
+      "rank": 160,
+      "word": "جنات",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "161": {
+      "rank": 161,
+      "word": "القوم",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "162": {
+      "rank": 162,
+      "word": "رحيم",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "163": {
+      "rank": 163,
+      "word": "الصالحات",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "164": {
+      "rank": 164,
+      "word": "بعض",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "165": {
+      "rank": 165,
+      "word": "العالمين",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "166": {
+      "rank": 166,
+      "word": "وقالوا",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "167": {
+      "rank": 167,
+      "word": "علم",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "168": {
+      "rank": 168,
+      "word": "لعلكم",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "169": {
+      "rank": 169,
+      "word": "الليل",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "170": {
+      "rank": 170,
+      "word": "كما",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "171": {
+      "rank": 171,
+      "word": "لن",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "172": {
+      "rank": 172,
+      "word": "بينهم",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "173": {
+      "rank": 173,
+      "word": "مع",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "174": {
+      "rank": 174,
+      "word": "الصلاة",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "175": {
+      "rank": 175,
+      "word": "الإنسان",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "176": {
+      "rank": 176,
+      "word": "التي",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "177": {
+      "rank": 177,
+      "word": "عليك",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "178": {
+      "rank": 178,
+      "word": "جاء",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "179": {
+      "rank": 179,
+      "word": "بآياتنا",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "180": {
+      "rank": 180,
+      "word": "فقد",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "181": {
+      "rank": 181,
+      "word": "شاء",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "182": {
+      "rank": 182,
+      "word": "أهل",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "183": {
+      "rank": 183,
+      "word": "تعلمون",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "184": {
+      "rank": 184,
+      "word": "يعملون",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "185": {
+      "rank": 185,
+      "word": "الجنة",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "186": {
+      "rank": 186,
+      "word": "قليلا",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "187": {
+      "rank": 187,
+      "word": "أعلم",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "188": {
+      "rank": 188,
+      "word": "أنت",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "189": {
+      "rank": 189,
+      "word": "لقد",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "190": {
+      "rank": 190,
+      "word": "وعملوا",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "191": {
+      "rank": 191,
+      "word": "قبلهم",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "192": {
+      "rank": 192,
+      "word": "غفور",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "193": {
+      "rank": 193,
+      "word": "رسول",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "194": {
+      "rank": 194,
+      "word": "الكافرين",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "195": {
+      "rank": 195,
+      "word": "أليم",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "196": {
+      "rank": 196,
+      "word": "آيات",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "197": {
+      "rank": 197,
+      "word": "يقولون",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "198": {
+      "rank": 198,
+      "word": "للناس",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "199": {
+      "rank": 199,
+      "word": "بني",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "200": {
+      "rank": 200,
+      "word": "لقوم",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "201": {
+      "rank": 201,
+      "word": "كنت",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "202": {
+      "rank": 202,
+      "word": "أرسلنا",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "203": {
+      "rank": 203,
+      "word": "علينا",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "204": {
+      "rank": 204,
+      "word": "إنك",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "205": {
+      "rank": 205,
+      "word": "عظيم",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "206": {
+      "rank": 206,
+      "word": "أمة",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "207": {
+      "rank": 207,
+      "word": "جميعا",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "208": {
+      "rank": 208,
+      "word": "تجري",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "209": {
+      "rank": 209,
+      "word": "عما",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "210": {
+      "rank": 210,
+      "word": "هي",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "211": {
+      "rank": 211,
+      "word": "كتاب",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "212": {
+      "rank": 212,
+      "word": "نفس",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "213": {
+      "rank": 213,
+      "word": "الدين",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "214": {
+      "rank": 214,
+      "word": "مثل",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "215": {
+      "rank": 215,
+      "word": "ولم",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "216": {
+      "rank": 216,
+      "word": "ليس",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "217": {
+      "rank": 217,
+      "word": "آية",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "218": {
+      "rank": 218,
+      "word": "عليها",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "219": {
+      "rank": 219,
+      "word": "فأولئك",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "220": {
+      "rank": 220,
+      "word": "كثيرا",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "221": {
+      "rank": 221,
+      "word": "هذه",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "222": {
+      "rank": 222,
+      "word": "أفلا",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "223": {
+      "rank": 223,
+      "word": "وأنتم",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "224": {
+      "rank": 224,
+      "word": "الرحمن",
+      "translation": {
+        "id": "Maha Pengasih",
+        "en": "the Most Gracious"
+      },
+      "context_verse": "1:1"
+    },
+    "225": {
+      "rank": 225,
+      "word": "الرسول",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "226": {
+      "rank": 226,
+      "word": "جعل",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "227": {
+      "rank": 227,
+      "word": "ذلكم",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "228": {
+      "rank": 228,
+      "word": "ويوم",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "229": {
+      "rank": 229,
+      "word": "خالدين",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "230": {
+      "rank": 230,
+      "word": "كذبوا",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "231": {
+      "rank": 231,
+      "word": "الأنهار",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "232": {
+      "rank": 232,
+      "word": "يهدي",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "233": {
+      "rank": 233,
+      "word": "ولهم",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "234": {
+      "rank": 234,
+      "word": "وقد",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "235": {
+      "rank": 235,
+      "word": "القرآن",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "236": {
+      "rank": 236,
+      "word": "ظلموا",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "237": {
+      "rank": 237,
+      "word": "إسرائيل",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "238": {
+      "rank": 238,
+      "word": "الحكيم",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "239": {
+      "rank": 239,
+      "word": "واتقوا",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "240": {
+      "rank": 240,
+      "word": "لعلهم",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "241": {
+      "rank": 241,
+      "word": "أنهم",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "242": {
+      "rank": 242,
+      "word": "اليوم",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "243": {
+      "rank": 243,
+      "word": "بهم",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "244": {
+      "rank": 244,
+      "word": "لها",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "245": {
+      "rank": 245,
+      "word": "بغير",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "246": {
+      "rank": 246,
+      "word": "فهم",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "247": {
+      "rank": 247,
+      "word": "هؤلاء",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "248": {
+      "rank": 248,
+      "word": "أمر",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "249": {
+      "rank": 249,
+      "word": "جاءهم",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "250": {
+      "rank": 250,
+      "word": "إليهم",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "251": {
+      "rank": 251,
+      "word": "قوما",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "252": {
+      "rank": 252,
+      "word": "وعلى",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "253": {
+      "rank": 253,
+      "word": "يقول",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "254": {
+      "rank": 254,
+      "word": "حكيم",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "255": {
+      "rank": 255,
+      "word": "يحب",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "256": {
+      "rank": 256,
+      "word": "وكذلك",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "257": {
+      "rank": 257,
+      "word": "يريد",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "258": {
+      "rank": 258,
+      "word": "الملائكة",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "259": {
+      "rank": 259,
+      "word": "أكثرهم",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "260": {
+      "rank": 260,
+      "word": "عذابا",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "261": {
+      "rank": 261,
+      "word": "هدى",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "262": {
+      "rank": 262,
+      "word": "لولا",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "263": {
+      "rank": 263,
+      "word": "ذكر",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "264": {
+      "rank": 264,
+      "word": "كلا",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "265": {
+      "rank": 265,
+      "word": "وعد",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "266": {
+      "rank": 266,
+      "word": "دونه",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "267": {
+      "rank": 267,
+      "word": "أنفسكم",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "268": {
+      "rank": 268,
+      "word": "وجعلنا",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "269": {
+      "rank": 269,
+      "word": "قدير",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "270": {
+      "rank": 270,
+      "word": "آمنا",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "271": {
+      "rank": 271,
+      "word": "بكم",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "272": {
+      "rank": 272,
+      "word": "خيرا",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "273": {
+      "rank": 273,
+      "word": "عنه",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "274": {
+      "rank": 274,
+      "word": "العظيم",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "275": {
+      "rank": 275,
+      "word": "تحتها",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "276": {
+      "rank": 276,
+      "word": "صالحا",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "277": {
+      "rank": 277,
+      "word": "قومه",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "278": {
+      "rank": 278,
+      "word": "شديد",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "279": {
+      "rank": 279,
+      "word": "وكانوا",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "280": {
+      "rank": 280,
+      "word": "أولم",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "281": {
+      "rank": 281,
+      "word": "الساعة",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "282": {
+      "rank": 282,
+      "word": "يكون",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "283": {
+      "rank": 283,
+      "word": "منا",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "284": {
+      "rank": 284,
+      "word": "الموت",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "285": {
+      "rank": 285,
+      "word": "ماء",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "286": {
+      "rank": 286,
+      "word": "فبأي",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "287": {
+      "rank": 287,
+      "word": "رحمة",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "288": {
+      "rank": 288,
+      "word": "بآيات",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "289": {
+      "rank": 289,
+      "word": "آلاء",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "290": {
+      "rank": 290,
+      "word": "مؤمنين",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "291": {
+      "rank": 291,
+      "word": "حق",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "292": {
+      "rank": 292,
+      "word": "بكل",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "293": {
+      "rank": 293,
+      "word": "أولياء",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "294": {
+      "rank": 294,
+      "word": "الرحيم",
+      "translation": {
+        "id": "Maha Penyayang",
+        "en": "the Most Merciful"
+      },
+      "context_verse": "1:1"
+    },
+    "295": {
+      "rank": 295,
+      "word": "قيل",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "296": {
+      "rank": 296,
+      "word": "معه",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "297": {
+      "rank": 297,
+      "word": "آياتنا",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "298": {
+      "rank": 298,
+      "word": "مريم",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "299": {
+      "rank": 299,
+      "word": "قبلك",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    },
+    "300": {
+      "rank": 300,
+      "word": "أيديهم",
+      "translation": {
+        "id": "",
+        "en": ""
+      },
+      "context_verse": "1:1"
+    }
+  }
+}
