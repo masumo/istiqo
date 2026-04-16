@@ -86,12 +86,12 @@ const MCQQuestion = ({ word, allWords, onAnswer }) => {
     const isCorrect  = option === word.translation;
 
     const base = {
-      padding: '1.25rem',
-      borderRadius: '1rem',
+      padding: '1rem 1.25rem',
+      borderRadius: '1.25rem',
       borderWidth: '3px',
       borderStyle: 'solid',
       fontWeight: 700,
-      fontSize: '1.05rem',
+      fontSize: '1rem',
       textAlign: 'left',
       cursor: locked ? 'default' : 'pointer',
       userSelect: 'none',
@@ -103,7 +103,7 @@ const MCQQuestion = ({ word, allWords, onAnswer }) => {
       return { ...base, background: '#fff', borderColor: '#e2e8f0', color: '#334155' };
     }
     if (isSelected && isCorrect)  return { ...base, background: '#f0fdf4', borderColor: '#58CC02', color: '#166534' };
-    if (isSelected && !isCorrect) return { ...base, background: '#fff1f2', borderColor: '#FF4B4B', color: '#991b1b' };
+    if (isSelected && !isCorrect) return { ...base, background: '#fee2e2', borderColor: '#FF4B4B', color: '#991b1b' };
     if (!isSelected && isCorrect) return { ...base, background: '#f0fdf4', borderColor: '#58CC02', color: '#166534' };
     return { ...base, background: '#fff', borderColor: '#e2e8f0', color: '#94a3b8', opacity: 0.6 };
   };
@@ -191,15 +191,39 @@ const MatchingPairs = ({ words, onComplete }) => {
   const getLeftStyle = (state) => ({
     width: '100%',
     height: '100%',
-    padding: '0.75rem 0.625rem',
-    borderRadius: '1rem',
+    padding: '1rem 0.875rem',
+    borderRadius: '1.25rem',
     borderWidth: '3px',
     borderStyle: 'solid',
     fontWeight: 700,
-    fontSize: '1.5rem',
+    fontSize: '1.75rem',
     direction: 'rtl',
-    textAlign: 'right',
-    lineHeight: 1.5,
+    textAlign: 'center',
+    lineHeight: 1.6,
+    cursor: state === 'matched' ? 'default' : 'pointer',
+    userSelect: 'none',
+    transition: 'all 0.15s',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    fontFamily: 'Amiri, serif',
+    ...(state === 'matched'  && { background: '#f0fdf4', borderColor: '#58CC02', color: '#166534' }),
+    ...(state === 'wrong'    && { background: '#fee2e2', borderColor: '#FF4B4B', color: '#991b1b' }),
+    ...(state === 'selected' && { background: '#E1F5FE', borderColor: '#0ea5e9', color: '#0c4a6e', transform: 'scale(1.04)', boxShadow: '0 4px 16px rgba(14,165,233,0.18)' }),
+    ...(state === 'idle'     && { background: '#fff', borderColor: '#e2e8f0', color: '#1e293b' }),
+  });
+
+  const getRightStyle = (state) => ({
+    width: '100%',
+    height: '100%',
+    padding: '1rem 0.875rem',
+    borderRadius: '1.25rem',
+    borderWidth: '3px',
+    borderStyle: 'solid',
+    fontWeight: 600,
+    fontSize: '0.875rem',
+    textAlign: 'center',
+    lineHeight: 1.4,
     cursor: state === 'matched' ? 'default' : 'pointer',
     userSelect: 'none',
     transition: 'all 0.15s',
@@ -207,38 +231,14 @@ const MatchingPairs = ({ words, onComplete }) => {
     alignItems: 'center',
     justifyContent: 'center',
     ...(state === 'matched'  && { background: '#f0fdf4', borderColor: '#58CC02', color: '#166534' }),
-    ...(state === 'wrong'    && { background: '#fff1f2', borderColor: '#FF4B4B', color: '#991b1b' }),
-    ...(state === 'selected' && { background: '#E1F5FE', borderColor: '#38bdf8', color: '#0c4a6e', transform: 'scale(1.04)', boxShadow: '0 4px 16px rgba(14,165,233,0.18)' }),
-    ...(state === 'idle'     && { background: '#fff', borderColor: '#e2e8f0', color: '#1e293b' }),
-  });
-
-  const getRightStyle = (state) => ({
-    width: '100%',
-    height: '100%',
-    padding: '0.75rem 0.625rem',
-    borderRadius: '1rem',
-    borderWidth: '3px',
-    borderStyle: 'solid',
-    fontWeight: 600,
-    fontSize: '0.85rem',
-    textAlign: 'left',
-    lineHeight: 1.35,
-    cursor: state === 'matched' ? 'default' : 'pointer',
-    userSelect: 'none',
-    transition: 'all 0.15s',
-    display: 'flex',
-    alignItems: 'center',
-    ...(state === 'matched'  && { background: '#f0fdf4', borderColor: '#58CC02', color: '#166534' }),
-    ...(state === 'wrong'    && { background: '#fff1f2', borderColor: '#FF4B4B', color: '#991b1b' }),
-    ...(state === 'selected' && { background: '#E1F5FE', borderColor: '#38bdf8', color: '#0c4a6e', transform: 'scale(1.04)', boxShadow: '0 4px 16px rgba(14,165,233,0.18)' }),
+    ...(state === 'wrong'    && { background: '#fee2e2', borderColor: '#FF4B4B', color: '#991b1b' }),
+    ...(state === 'selected' && { background: '#E1F5FE', borderColor: '#0ea5e9', color: '#0c4a6e', transform: 'scale(1.04)', boxShadow: '0 4px 16px rgba(14,165,233,0.18)' }),
     ...(state === 'idle'     && { background: '#fff', borderColor: '#e2e8f0', color: '#475569' }),
   });
 
   return (
     <div className="w-full space-y-3">
-      {/* Equal-height grid: items-stretch ensures both columns match row for row */}
       <div className="grid grid-cols-2 gap-3 items-stretch">
-        {/* Left — Arabic */}
         <div className="flex flex-col gap-3">
           {leftItems.map((item) => {
             const state = leftState(item);
@@ -252,13 +252,12 @@ const MatchingPairs = ({ words, onComplete }) => {
                 transition={{ duration: 0.45 }}
                 whileTap={{ scale: matched.has(item.pairId) ? 1 : 0.95 }}
               >
-                {item.text}
+                <span style={{ fontFamily: 'Amiri, serif' }}>{item.text}</span>
               </motion.button>
             );
           })}
         </div>
 
-        {/* Right — Translation */}
         <div className="flex flex-col gap-3">
           {rightItems.map((item) => {
             const state = rightState(item);
@@ -279,7 +278,6 @@ const MatchingPairs = ({ words, onComplete }) => {
         </div>
       </div>
 
-      {/* Progress dots */}
       <div className="flex justify-center gap-2 mt-1">
         {pairs.map((_, i) => (
           <motion.div
@@ -318,53 +316,48 @@ const ResultsScreen = ({ score, total, xpEarned, lang, lessonNum, totalLessons, 
       initial={{ opacity: 0, y: 30 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.35 }}
-      className="w-full max-w-lg flex flex-col items-center space-y-6 p-4"
+      className="w-full max-w-lg flex flex-col items-center space-y-5 p-4"
     >
-      <div className="w-full bg-white rounded-[2.5rem] shadow-2xl border-4 border-slate-50 p-8 flex flex-col items-center space-y-6">
+      <div className="w-full bg-white rounded-[2rem] shadow-xl border-4 border-slate-50 p-6 flex flex-col items-center space-y-5">
 
-        {/* Lesson label */}
         <div className="text-xs font-black uppercase tracking-widest text-emerald-600 bg-emerald-50 px-4 py-1.5 rounded-full">
           {t(lang, 'lesson.label')} {lessonNum} {t(lang, 'lesson.of')} {totalLessons}
         </div>
 
-        {/* Nur mascot — always rendered */}
-        <NurMascot mood="celebrate" size={180} />
+        <NurMascot mood="celebrate" size={160} sparkles={true} />
 
-        {/* Headline */}
-        <h2 className="text-3xl font-extrabold text-slate-800 text-center">
+        <h2 className="text-2xl font-extrabold text-slate-800 text-center">
           {isPerfect ? t(lang, 'quiz.perfect_score') : t(lang, 'quiz.completed')}
         </h2>
 
-        {/* Stat cards */}
         <div className="grid grid-cols-3 gap-3 w-full">
-          <div className="flex flex-col items-center gap-1 bg-slate-50 rounded-2xl p-4">
-            <Trophy className="w-6 h-6 text-amber-500" />
-            <span className="text-2xl font-black text-slate-800">{score}/{total}</span>
+          <div className="flex flex-col items-center gap-1 bg-slate-50 rounded-xl p-4">
+            <Trophy className="w-5 h-5 text-amber-500" />
+            <span className="text-xl font-black text-slate-800">{score}/{total}</span>
             <span className="text-[10px] uppercase tracking-widest font-bold text-slate-400">
               {t(lang, 'quiz.score')}
             </span>
           </div>
-          <div className="flex flex-col items-center gap-1 bg-slate-50 rounded-2xl p-4">
-            <CheckCircle2 className="w-6 h-6 text-emerald-500" />
-            <span className="text-2xl font-black text-emerald-600">{pct}%</span>
+          <div className="flex flex-col items-center gap-1 bg-slate-50 rounded-xl p-4">
+            <CheckCircle2 className="w-5 h-5 text-emerald-500" />
+            <span className="text-xl font-black text-emerald-600">{pct}%</span>
             <span className="text-[10px] uppercase tracking-widest font-bold text-slate-400">
               Accuracy
             </span>
           </div>
-          <div className="flex flex-col items-center gap-1 bg-amber-50 rounded-2xl p-4">
-            <Star className="w-6 h-6 text-amber-500 fill-amber-400" />
-            <span className="text-2xl font-black text-amber-600">+{xpEarned}</span>
+          <div className="flex flex-col items-center gap-1 bg-amber-50 rounded-xl p-4">
+            <Star className="w-5 h-5 text-amber-500 fill-amber-400" />
+            <span className="text-xl font-black text-amber-600">+{xpEarned}</span>
             <span className="text-[10px] uppercase tracking-widest font-bold text-slate-400">XP</span>
           </div>
         </div>
 
-        {/* Continue */}
         <motion.button
           onClick={onContinue}
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.97 }}
-          className="w-full py-5 rounded-2xl font-black text-xl text-white shadow-lg transition-colors"
-          style={{ background: '#58CC02', boxShadow: '0 6px 24px rgba(88,204,2,0.3)' }}
+          className="w-full py-4 rounded-xl font-black text-lg text-white shadow-lg transition-colors"
+          style={{ background: '#58CC02', boxShadow: '0 4px 16px rgba(88,204,2,0.3)' }}
         >
           {t(lang, 'quiz.continue')}
         </motion.button>
@@ -576,16 +569,15 @@ const Quiz = ({
             initial={{ opacity: 0, y: 18 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -18 }}
-            className="w-full bg-white rounded-[2.5rem] shadow-2xl border-4 border-slate-50 p-8 flex flex-col items-center space-y-6"
+            className="w-full bg-white rounded-[2rem] shadow-xl border-4 border-slate-50 p-6 flex flex-col items-center space-y-5"
           >
             <div className="text-xs font-black uppercase tracking-widest text-slate-400">
               {t(lang, 'quiz.title')}
             </div>
 
-            {/* Arabic word */}
             <div className="text-center py-2">
               <span
-                className="text-7xl font-bold text-slate-800 leading-relaxed"
+                className="text-6xl font-bold text-slate-800 leading-relaxed"
                 style={{ fontFamily: 'Amiri, serif' }}
                 dir="rtl"
               >
@@ -608,11 +600,11 @@ const Quiz = ({
                   onClick={handleMCQNext}
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.97 }}
-                  className="w-full py-5 rounded-2xl font-black text-xl text-white shadow-lg transition-colors flex items-center justify-center gap-3"
+                  className="w-full py-4 rounded-xl font-black text-lg text-white shadow-lg transition-colors flex items-center justify-center gap-3"
                   style={
                     mcqAnswered.correct
-                      ? { background: '#58CC02', boxShadow: '0 6px 20px rgba(88,204,2,0.28)' }
-                      : { background: '#475569', boxShadow: '0 6px 20px rgba(71,85,105,0.2)' }
+                      ? { background: '#58CC02', boxShadow: '0 4px 16px rgba(88,204,2,0.28)' }
+                      : { background: '#475569', boxShadow: '0 4px 16px rgba(71,85,105,0.2)' }
                   }
                 >
                   {mcqAnswered.correct
@@ -650,7 +642,7 @@ const Quiz = ({
           initial={{ opacity: 0, y: 18 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -18 }}
-          className="w-full bg-white rounded-[2.5rem] shadow-2xl border-4 border-slate-50 p-6 flex flex-col items-center space-y-4"
+          className="w-full bg-white rounded-[2rem] shadow-xl border-4 border-slate-50 p-6 flex flex-col items-center space-y-4"
         >
           <div className="flex flex-col items-center gap-1">
             <div className="text-xs font-black uppercase tracking-widest text-slate-400">

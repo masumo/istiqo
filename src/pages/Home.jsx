@@ -13,11 +13,11 @@ import NurMascot from '../components/NurMascot/NurMascot';
 
 // ── Section theming ───────────────────────────────────────────────────────────
 const SECTION_THEME = {
-  1: { icon: BookOpen,    gradient: 'from-emerald-500 to-teal-500',    ring: '#10b981', locked: '#a7f3d0', text: 'text-emerald-700', bg: 'bg-emerald-50',  border: 'border-emerald-200', btn: 'bg-emerald-600 hover:bg-emerald-700 shadow-emerald-200' },
-  2: { icon: Link2,       gradient: 'from-sky-500 to-cyan-500',        ring: '#0ea5e9', locked: '#bae6fd', text: 'text-sky-700',     bg: 'bg-sky-50',      border: 'border-sky-200',     btn: 'bg-sky-600 hover:bg-sky-700 shadow-sky-200' },
-  3: { icon: Layers,      gradient: 'from-violet-500 to-purple-500',   ring: '#8b5cf6', locked: '#ddd6fe', text: 'text-violet-700', bg: 'bg-violet-50',   border: 'border-violet-200',  btn: 'bg-violet-600 hover:bg-violet-700 shadow-violet-200' },
-  4: { icon: ScrollText,  gradient: 'from-amber-500 to-orange-500',    ring: '#f59e0b', locked: '#fde68a', text: 'text-amber-700',  bg: 'bg-amber-50',    border: 'border-amber-200',   btn: 'bg-amber-600 hover:bg-amber-700 shadow-amber-200' },
-  5: { icon: Sparkles,    gradient: 'from-rose-500 to-pink-500',       ring: '#f43f5e', locked: '#fecdd3', text: 'text-rose-700',   bg: 'bg-rose-50',     border: 'border-rose-200',    btn: 'bg-rose-600 hover:bg-rose-700 shadow-rose-200' },
+  1: { icon: BookOpen,    gradient: 'from-emerald-500 to-teal-500',    ring: '#10b981', locked: '#a7f3d0', text: 'text-emerald-700', bg: 'bg-emerald-50',  border: 'border-emerald-200', btn: 'bg-emerald-600 hover:bg-emerald-700 shadow-emerald-200', title: 'The Foundations' },
+  2: { icon: Link2,       gradient: 'from-sky-500 to-cyan-500',        ring: '#0ea5e9', locked: '#bae6fd', text: 'text-sky-700',     bg: 'bg-sky-50',      border: 'border-sky-200',     btn: 'bg-sky-600 hover:bg-sky-700 shadow-sky-200', title: 'The Core Connectors' },
+  3: { icon: Layers,      gradient: 'from-violet-500 to-purple-500',   ring: '#8b5cf6', locked: '#ddd6fe', text: 'text-violet-700', bg: 'bg-violet-50',   border: 'border-violet-200',  btn: 'bg-violet-600 hover:bg-violet-700 shadow-violet-200', title: 'Contextual Mastery' },
+  4: { icon: ScrollText,  gradient: 'from-amber-500 to-orange-500',    ring: '#f59e0b', locked: '#fde68a', text: 'text-amber-700',  bg: 'bg-amber-50',    border: 'border-amber-200',   btn: 'bg-amber-600 hover:bg-amber-700 shadow-amber-200', title: 'Stories of Prophets' },
+  5: { icon: Sparkles,    gradient: 'from-rose-500 to-pink-500',       ring: '#f43f5e', locked: '#fecdd3', text: 'text-rose-700',   bg: 'bg-rose-50',     border: 'border-rose-200',    btn: 'bg-rose-600 hover:bg-rose-700 shadow-rose-200', title: 'Advanced Nuances' },
 };
 
 // ── ProgressRing ──────────────────────────────────────────────────────────────
@@ -181,6 +181,7 @@ const UnitNode = ({ unit, theme, onStart, lessonProgress }) => {
 // ── SectionHeader ─────────────────────────────────────────────────────────────
 const SectionHeader = ({ sec, theme }) => {
   const Icon = theme.icon;
+  const displayTitle = theme.title || sec.title;
   return (
     <div className={`relative overflow-hidden rounded-3xl bg-gradient-to-r ${theme.gradient} p-5 text-white shadow-lg`}>
       <div className="flex items-center gap-4">
@@ -191,7 +192,7 @@ const SectionHeader = ({ sec, theme }) => {
           <div className="text-xs font-bold uppercase tracking-widest text-white/70">
             Section {sec.section}
           </div>
-          <div className="text-xl font-extrabold">{sec.title}</div>
+          <div className="text-xl font-extrabold">{displayTitle}</div>
           <div className="text-xs text-white/70 mt-0.5">
             Unit {sec.unitStart}–{sec.unitEnd} · Rank #{sec.rankStart}–{sec.rankEnd}
           </div>
