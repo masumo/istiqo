@@ -257,14 +257,16 @@ const Learn = () => {
   }, [currentWord, preferredLanguage, verse, audioData, audioError, lang]);
 
   // Quiz words — use language-correct translation field
-  const quizWords = useMemo(
-    () =>
-      sessionWords.map((w) => ({
-        arabic:      w.word,
-        translation: w.translation?.[preferredLanguage] || w.translation?.en || '',
-      })),
-    [preferredLanguage, sessionWords]
-  );
+  const quizWords = useUserStore(state => state.currentQuizWords);
+  
+  const mappedQuizWords = useMemo(() => {
+    const sourceWords = quizWords?.length > 0 ? quizWords : sessionWords;
+    return sourceWords.map((w) => ({
+      word: w.word,
+      arabic: w.word,
+      translation: w.translation || {},
+    }));
+  }, [quizWords, sessionWords]);
 
   // ── XP pop feedback ───────────────────────────────────────────────────────
   const showXPFeedback = (amount) => {
@@ -357,7 +359,7 @@ const Learn = () => {
         </div>
 
         <Quiz
-          words={quizWords}
+          words={mappedQuizWords}
           lessonIndex={lessonIndex}
           totalLessons={totalLessons}
           unitKey={unitKey}

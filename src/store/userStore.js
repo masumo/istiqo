@@ -1,205 +1,130 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 
-// ── Translations (inline, canonical source of truth) ─────────────────────────
-export const translations = {
-  en: {
-    welcome: 'Welcome to Istiqo',
-    appSubtitle: 'Top 300 High-Frequency Quranic Words',
-    languageSelect: 'Select Language',
-    dailyGoal: 'Your Daily Goal',
-    notification: 'Notification Time',
-    wordsPerDay: 'words / day',
-    continue: 'Continue',
-    startJourney: 'Start Journey',
-    bookmark: 'Bookmark',
-    learned: 'Learned',
-    next: 'Next',
-    prev: 'Previous',
-    settings: 'Settings',
-    streak: 'Streak',
-    xp: 'XP',
-    notificationsPermission: 'Request Notification Permission',
-    notificationTime: 'Select Notification Time',
-    loading_verse: 'Loading verse...',
-    loading_audio: 'Loading audio...',
-    audio_error: 'Audio unavailable',
-    audio_loading: 'Loading audio...',
-    mnemonic: { show: '💡 Memory Trick', hide: 'Hide Mnemonic' },
-    navigation: { back: 'Back', next: 'Next' },
-    stats: { streak: 'Streak', xp: 'XP', words: 'Words' },
-    unit: {
-      completed: '✓ Completed',
-      active: 'Active',
-      locked: '🔒 Locked',
-      available: 'Available',
-      review: 'Review',
-      continue: 'Continue',
-      start: 'Start',
-    },
-    lesson: {
-      label: 'Lesson',
-      of: 'of',
-      completed: 'Lesson Complete!',
-      perfect: 'Perfect Score! 🌟',
-    },
-    quiz: {
-      title: 'Quiz',
-      score: 'Score',
-      perfect_score: 'Perfect! 🌟',
-      completed: 'Lesson Complete!',
-      continue: 'Continue',
-      matchTitle: 'Match the Words',
-    },
-    celebration: {
-      title: '🎉 Daily Goal Achieved!',
-      description: "Amazing! You've learned {wordsLearned} words today!",
-      continue: 'Continue',
-    },
-    goals: {
-      casual: { label: 'Relaxed', description: '5 words/day' },
-      serious: { label: 'Serious', description: '10 words/day' },
-      intense: { label: 'Intensive', description: '15 words/day' },
-    },
-    noActiveUnit: 'No active unit.',
-    back: 'Back',
-    languages: { indonesian: 'Bahasa Indonesia', english: 'English' },
+// ─── Section / Unit / Lesson Data ────────────────────────────────────────────
+export const SECTIONS_DATA = [
+  {
+    section: 1,
+    title: 'The Foundations',
+    subtitle: 'Master the 50 most-used Quranic words',
+    units: [1, 2, 3, 4],
+    themeColor: '#37607D',
+    accentColor: '#4A8BBF',
   },
-  id: {
-    welcome: 'Selamat Datang di Istiqo',
-    appSubtitle: '300 Kata Paling Sering dalam Al-Quran',
-    languageSelect: 'Pilih Bahasa',
-    dailyGoal: 'Target Harian Anda',
-    notification: 'Waktu Notifikasi',
-    wordsPerDay: 'kata / hari',
-    continue: 'Lanjutkan',
-    startJourney: 'Mulai Perjalanan',
-    bookmark: 'Simpan',
-    learned: 'Telah Dipelajari',
-    next: 'Selanjutnya',
-    prev: 'Sebelumnya',
-    settings: 'Pengaturan',
-    streak: 'Streak',
-    xp: 'XP',
-    notificationsPermission: 'Minta Izin Notifikasi',
-    notificationTime: 'Pilih Waktu Notifikasi',
-    loading_verse: 'Memuat ayat...',
-    loading_audio: 'Memuat audio...',
-    audio_error: 'Audio tidak tersedia',
-    audio_loading: 'Memuat audio...',
-    mnemonic: { show: '💡 Cara Mengingat', hide: 'Sembunyikan Mnemonik' },
-    navigation: { back: 'Kembali', next: 'Lanjut' },
-    stats: { streak: 'Streak', xp: 'XP', words: 'Kata' },
-    unit: {
-      completed: '✓ Selesai',
-      active: 'Aktif',
-      locked: '🔒 Terkunci',
-      available: 'Tersedia',
-      review: 'Review',
-      continue: 'Lanjut',
-      start: 'Start',
-    },
-    lesson: {
-      label: 'Lesson',
-      of: 'dari',
-      completed: 'Lesson Selesai!',
-      perfect: 'Nilai Sempurna! 🌟',
-    },
-    quiz: {
-      title: 'Kuis',
-      score: 'Skor',
-      perfect_score: 'Sempurna! 🌟',
-      completed: 'Lesson Selesai!',
-      continue: 'Lanjutkan',
-      matchTitle: 'Cocokkan Kata',
-    },
-    celebration: {
-      title: '🎉 Target Harian Tercapai!',
-      description: 'Luar biasa! Kamu sudah belajar {wordsLearned} kata hari ini!',
-      continue: 'Lanjutkan',
-    },
-    goals: {
-      casual: { label: 'Santai', description: '5 kata/hari' },
-      serious: { label: 'Serius', description: '10 kata/hari' },
-      intense: { label: 'Intensif', description: '15 kata/hari' },
-    },
-    noActiveUnit: 'Tidak ada Unit aktif.',
-    back: 'Kembali',
-    languages: { indonesian: 'Bahasa Indonesia', english: 'English' },
-  },
+];
+
+export const getUnitsForSection = (sectionNum) => {
+  const section = SECTIONS_DATA.find((s) => s.section === sectionNum);
+  return section ? section.units.map((u) => ({ section: sectionNum, unit: u })) : [];
 };
 
-/**
- * t(lang, key) — traverse nested translations by dot-path.
- * Falls back to EN, then returns the bare key.
- * Supports {param} replacement via optional `params` object.
- */
-export const t = (lang, key, params = {}) => {
-  const parts = String(key).split('.');
-  const resolve = (obj) => {
-    let cur = obj;
-    for (const p of parts) {
-      if (cur == null || typeof cur !== 'object') return undefined;
-      cur = cur[p];
-    }
-    return typeof cur === 'string' ? cur : undefined;
-  };
+export const getSectionTitle = (sectionNum) =>
+  SECTIONS_DATA.find((s) => s.section === sectionNum)?.title ?? 'Section';
 
-  const dict = translations[lang] || translations.en;
-  let result = resolve(dict) ?? resolve(translations.en) ?? key;
-
-  if (typeof result === 'string' && Object.keys(params).length) {
-    Object.entries(params).forEach(([k, v]) => {
-      result = result.replace(`{${k}}`, v);
-    });
-  }
-  return result;
-};
-
-// ── Date helpers ──────────────────────────────────────────────────────────────
+// ─── Helpers ──────────────────────────────────────────────────────────────────
 const todayKey = () => new Date().toISOString().slice(0, 10);
-
 const daysBetween = (a, b) => {
   if (!a || !b) return Infinity;
   return Math.round(Math.abs(new Date(b) - new Date(a)) / 86_400_000);
 };
 
-// ── Lesson layout helper ──────────────────────────────────────────────────────
-/**
- * Splits a unit's words into 4–5 Duolingo-style lessons with spaced repetition.
- * Lesson structure (example for a 13-word unit):
- *   L1: words 0-2   (3 new)
- *   L2: words 3-5 + review words 0-1   (3 new + 2 review)
- *   L3: words 6-8 + review words 2-4   (3 new + 2 review)
- *   L4: words 9-11 + review words 5-7  (3 new + 2 review)
- *   L5: word 12 + review words 8-12    (full review + final)
- *
- * Returns array of lesson objects: { lessonIndex, words: Word[] }
- */
 export const buildLessons = (words) => {
   if (!Array.isArray(words) || words.length === 0) return [];
-
-  const BATCH = 4;  // new words introduced per lesson
-  const REVIEW = 3; // words carried over from previous lesson for revision
-
+  const BATCH = 4, REVIEW = 3;
   const lessons = [];
   let i = 0;
-
   while (i < words.length) {
-    const newWords    = words.slice(i, i + BATCH);
+    const newWords = words.slice(i, i + BATCH);
     const reviewStart = Math.max(0, i - REVIEW);
     const reviewWords = i === 0 ? [] : words.slice(reviewStart, i).slice(0, REVIEW);
-    lessons.push({
-      lessonIndex: lessons.length,
-      words: [...reviewWords, ...newWords], // review first, then new
-    });
+    lessons.push({ lessonIndex: lessons.length, words: [...reviewWords, ...newWords] });
     i += BATCH;
   }
-
   return lessons;
 };
 
-// ── Store ─────────────────────────────────────────────────────────────────────
+export const getUnitKey = (section, unit) => `${section}:${unit}`;
+
+/** Returns true only when every lesson in every unit of the given section is complete. */
+export const isSectionFullyComplete = (sectionNum, lessonProgress) => {
+  const units = getUnitsForSection(sectionNum);
+  return units.every(({ section, unit }) => {
+    const key = getUnitKey(section, unit);
+    const prog = lessonProgress?.[key];
+    if (!prog) return false;
+    const done = new Set(prog.completedLessons ?? []).size;
+    return done >= (prog.totalLessons ?? 1);
+  });
+};
+
+// ─── Backwards-compat t() shim (English only — no i18n keys leaked to UI) ────
+export const translations = { en: {} };
+export const t = (_lang, key) => {
+  const map = {
+    'lesson.label': 'Lesson',
+    'lesson.of': 'of',
+    'quiz.title': 'Quiz',
+    'quiz.score': 'Score',
+    'quiz.perfect_score': 'Perfect Score!',
+    'quiz.completed': 'Lesson Complete!',
+    'quiz.continue': 'Continue',
+    'quiz.matchTitle': 'Match the Words',
+  };
+  return map[key] ?? key;
+};
+
+// ─── UI strings (English hardcoded) ──────────────────────────────────────────
+export const uiStrings = {
+  streakLabel: 'Day Streak',
+  xpLabel: 'XP',
+  dailyGoalLabel: 'Daily Goal',
+  settings: 'Settings',
+  start: 'Start',
+  lessonLabel: 'Lesson',
+  lessonOf: 'of',
+  lessonsDone: (done, total) => `${done}/${total} Lessons`,
+  unitComplete: 'Unit Complete!',
+  locked: 'Locked',
+  section: 'Section',
+  progress: 'Progress',
+  quizTitle: 'Quiz',
+  matchTitle: 'Match the Words',
+  wellDone: 'Well Done!',
+  perfectScore: 'Perfect Score!',
+  lessonComplete: 'Lesson Complete!',
+  next: 'Next',
+  gotIt: 'Got it',
+  score: 'Score',
+  accuracy: 'Accuracy',
+  accuracyLabel: 'Accuracy',
+  continue: 'Continue',
+  loading: 'Loading quiz...',
+  languageSelect: 'Select Language',
+  dailyGoal: 'Daily Goal',
+  notification: 'Notification Time',
+  wordsPerDay: 'words / day',
+  continueLabel: 'Continue',
+  startJourney: 'Start Journey',
+  bookmark: 'Bookmark',
+  learned: 'Learned',
+  prev: 'Previous',
+  back: 'Back',
+  check: 'Check',
+  loadingVerse: 'Loading verse...',
+  audioError: 'Audio unavailable',
+  audioLoading: 'Loading audio...',
+  mnemonicShow: 'Memory Trick',
+  mnemonicHide: 'Hide Mnemonic',
+  celebrationTitle: 'Daily Goal Achieved!',
+  celebrationDesc: (n) => `Amazing! You've learned ${n} words today!`,
+  noActiveUnit: 'No active unit.',
+  goalCasual: { label: 'Casual', description: '5 words/day' },
+  goalSerious: { label: 'Serious', description: '10 words/day' },
+  goalIntense: { label: 'Intensive', description: '15 words/day' },
+  languages: { indonesian: 'Bahasa Indonesia', english: 'English' },
+};
+
+// ─── Store ────────────────────────────────────────────────────────────────────
 export const useUserStore = create(
   persist(
     (set, get) => ({
@@ -213,19 +138,16 @@ export const useUserStore = create(
       streak: 0,
       streakFreezeCount: 1,
       lastSessionDate: null,
-
-      // Daily XP tracking
       dailyXP: 0,
       dailyXPDate: null,
       dailyWordsLearned: 0,
       dailyGoalCompleted: false,
       dailyGoalCompletedAt: null,
-
-      // ── Lesson progress per unit ───────────────────────────────────────────
-      // lessonProgress: { [unitKey]: { completedLessons: number[], totalLessons: number } }
+      // { [unitKey]: { completedLessons: number[], totalLessons: number } }
       lessonProgress: {},
+      currentQuizWords: [],
 
-      // ── Setters ────────────────────────────────────────────────────────────
+      setCurrentQuizWords: (words) => set({ currentQuizWords: words }),
       setLanguage: (lang) => set({ preferredLanguage: lang }),
       setDailyGoal: (goal) => set({ dailyGoal: goal }),
       setNotificationTime: (time) => set({ notificationTime: time }),
@@ -233,219 +155,141 @@ export const useUserStore = create(
       setAuthToken: (token) => set({ authToken: token }),
       setAllowUserApiCalls: (allow) => set({ allowUserApiCalls: allow }),
 
-      // ── Lesson completion ──────────────────────────────────────────────────
+      // ── Unit locking ──────────────────────────────────────────────────────
       /**
-       * completeLesson — called when user taps "Continue" on the quiz results screen.
-       * @param {string} unitKey   e.g. "1:1"
-       * @param {number} lessonIdx zero-based index of the completed lesson
-       * @param {number} totalLessons total lessons in this unit
-       * @param {number} score    number of correct answers
-       * @param {number} total    total questions
-       * @returns {{ xpEarned: number, unitComplete: boolean }}
+       * isUnitLocked(sectionNum, unitNum)
+       * Returns true if the PREVIOUS unit's lessons are not 100% complete.
+       * Unit 1 of any section is never locked.
        */
-      completeLesson: (unitKey, lessonIdx, totalLessons, score, total) => {
-        // Guard clauses
-        if (!unitKey || lessonIdx == null || isNaN(lessonIdx)) {
-          return { xpEarned: 0, unitComplete: false };
-        }
-        const safeScore = Number(score) || 0;
-        const safeTotal = Number(total) || 1;
-        const safeLessonIdx = Number(lessonIdx);
-        const safeTotalLessons = Number(totalLessons) || 1;
+      isUnitLocked: (sectionNum, unitNum) => {
+        if (unitNum <= 1) return false;
+        const prevKey = getUnitKey(sectionNum, unitNum - 1);
+        const prev = get().lessonProgress?.[prevKey];
+        if (!prev) return true;
+        const done = new Set(prev.completedLessons ?? []).size;
+        return done < (prev.totalLessons ?? 1);
+      },
 
+      // ── completeLesson ────────────────────────────────────────────────────
+      completeLesson: (unitKey, lessonIdx, totalLessons, score, quizTotal) => {
+        if (!unitKey || lessonIdx == null) return { xpEarned: 0, unitComplete: false };
+        const safeScore = Number(score) || 0;
+        const safeTotalLessons = Number(totalLessons) || 1;
+        const safeQuizTotal = Number(quizTotal) || safeTotalLessons;
         const state = get();
         const today = todayKey();
         const isNewDay = state.dailyXPDate !== today;
+        const xpEarned = safeScore * 10 + (safeScore === safeQuizTotal ? 25 : 0);
 
-        // XP: 10 per correct + 25 bonus for perfect
-        const baseXP = safeScore * 10;
-        const bonusXP = safeScore === safeTotal ? 25 : 0;
-        const xpEarned = baseXP + bonusXP;
+        const goalReached =
+          (isNewDay ? safeScore : (state.dailyWordsLearned || 0) + safeScore) >=
+          (state.dailyGoal || 5);
 
-        const newDailyXP = isNewDay ? xpEarned : (state.dailyXP || 0) + xpEarned;
-        const newTotalXP = (state.xp || 0) + xpEarned;
-
-        // Words learned per lesson (count new words, not review)
-        const newDailyWordsLearned = isNewDay
-          ? safeScore
-          : (state.dailyWordsLearned || 0) + safeScore;
-
-        const goalReached = newDailyWordsLearned >= (state.dailyGoal || 5);
-        const wasNotCompleted = !state.dailyGoalCompleted || isNewDay;
-
-        // Update lesson progress
         const prev = state.lessonProgress?.[unitKey] || { completedLessons: [], totalLessons: safeTotalLessons };
         const completedSet = new Set(Array.isArray(prev.completedLessons) ? prev.completedLessons : []);
-        completedSet.add(safeLessonIdx);
+        completedSet.add(Number(lessonIdx));
 
-        const unitComplete = completedSet.size >= safeTotalLessons;
+        const updatedProgress = {
+          ...state.lessonProgress,
+          [unitKey]: { completedLessons: Array.from(completedSet), totalLessons: safeTotalLessons },
+        };
 
         set({
-          xp: newTotalXP,
-          dailyXP: newDailyXP,
+          xp: (state.xp || 0) + xpEarned,
+          dailyXP: isNewDay ? xpEarned : (state.dailyXP || 0) + xpEarned,
           dailyXPDate: today,
-          dailyWordsLearned: newDailyWordsLearned,
+          dailyWordsLearned: isNewDay ? safeScore : (state.dailyWordsLearned || 0) + safeScore,
           dailyGoalCompleted: goalReached,
           dailyGoalCompletedAt:
-            goalReached && wasNotCompleted
+            goalReached && (!state.dailyGoalCompleted || isNewDay)
               ? new Date().toISOString()
               : state.dailyGoalCompletedAt,
-          lessonProgress: {
-            ...state.lessonProgress,
-            [unitKey]: {
-              completedLessons: Array.from(completedSet),
-              totalLessons: safeTotalLessons,
-            },
-          },
+          lessonProgress: updatedProgress,
         });
 
-        return { xpEarned, unitComplete };
+        return { xpEarned, unitComplete: completedSet.size >= safeTotalLessons };
       },
 
-      getLessonProgress: (unitKey) => {
-        const state = get();
-        return state.lessonProgress?.[unitKey] || { completedLessons: [], totalLessons: 0 };
-      },
+      getLessonProgress: (unitKey) =>
+        get().lessonProgress?.[unitKey] || { completedLessons: [], totalLessons: 0 },
 
       isUnitFullyComplete: (unitKey, totalLessons) => {
-        const state = get();
-        const prog = state.lessonProgress?.[unitKey];
+        const prog = get().lessonProgress?.[unitKey];
         if (!prog) return false;
-        const completed = new Set(Array.isArray(prog.completedLessons) ? prog.completedLessons : []);
-        return completed.size >= (totalLessons || prog.totalLessons || 1);
+        return new Set(prog.completedLessons ?? []).size >= (totalLessons || prog.totalLessons || 1);
       },
 
-      // ── Legacy quiz XP (used by Learn.jsx) ────────────────────────────────
+      // ── XP ────────────────────────────────────────────────────────────────
       addXP: (amount) =>
         set((state) => {
           const today = todayKey();
           const isNewDay = state.dailyXPDate !== today;
           const amt = Number(amount) || 0;
-          const newDailyXP = isNewDay ? amt : (state.dailyXP || 0) + amt;
-          const newTotalXP = (state.xp || 0) + amt;
-          const isCardLearning = amt === 1;
-          const newDailyWordsLearned = isNewDay
-            ? (isCardLearning ? 1 : 0)
-            : (state.dailyWordsLearned || 0) + (isCardLearning ? 1 : 0);
-          const goalReached = newDailyWordsLearned >= (state.dailyGoal || 5);
-          const wasNotCompleted = !state.dailyGoalCompleted || isNewDay;
+          const words = isNewDay
+            ? amt === 1 ? 1 : 0
+            : (state.dailyWordsLearned || 0) + (amt === 1 ? 1 : 0);
           return {
-            xp: newTotalXP,
-            dailyXP: newDailyXP,
+            xp: (state.xp || 0) + amt,
+            dailyXP: isNewDay ? amt : (state.dailyXP || 0) + amt,
             dailyXPDate: today,
-            dailyWordsLearned: newDailyWordsLearned,
-            dailyGoalCompleted: goalReached,
-            dailyGoalCompletedAt:
-              goalReached && wasNotCompleted
-                ? new Date().toISOString()
-                : state.dailyGoalCompletedAt,
+            dailyWordsLearned: words,
+            dailyGoalCompleted: words >= (state.dailyGoal || 5),
           };
         }),
 
-      recordUnitCompletion: (wordCount) => {
-        const xpAmount = Number(wordCount) || 1;
-        get().addXP(xpAmount);
-        return xpAmount;
+      recordUnitCompletion: (count) => {
+        get().addXP(Number(count) || 1);
+        return Number(count) || 1;
       },
 
-      recordQuizCompletion: (correctAnswers, totalQuestions) => {
-        const correct = Number(correctAnswers) || 0;
-        const total = Number(totalQuestions) || 1;
-        const baseXP = correct * 10;
-        const bonusXP = correct === total ? 25 : 0;
-        const totalXP = baseXP + bonusXP;
-
-        const state = get();
-        const today = todayKey();
-        const isNewDay = state.dailyXPDate !== today;
-
-        const newDailyXP = isNewDay ? totalXP : (state.dailyXP || 0) + totalXP;
-        const newTotalXP = (state.xp || 0) + totalXP;
-        const newDailyWordsLearned = isNewDay
-          ? correct
-          : (state.dailyWordsLearned || 0) + correct;
-        const goalReached = newDailyWordsLearned >= (state.dailyGoal || 5);
-        const wasNotCompleted = !state.dailyGoalCompleted || isNewDay;
-
-        set({
-          xp: newTotalXP,
-          dailyXP: newDailyXP,
-          dailyXPDate: today,
-          dailyWordsLearned: newDailyWordsLearned,
-          dailyGoalCompleted: goalReached,
-          dailyGoalCompletedAt:
-            goalReached && wasNotCompleted
-              ? new Date().toISOString()
-              : state.dailyGoalCompletedAt,
-        });
-
-        return totalXP;
-      },
-
-      // ── Daily progress ─────────────────────────────────────────────────────
+      // ── Daily progress ────────────────────────────────────────────────────
       getDailyProgress: () => {
         const state = get();
-        const today = todayKey();
-        if (state.dailyXPDate !== today) return 0;
-        return Math.min(((state.dailyWordsLearned || 0) / (state.dailyGoal || 5)) * 100, 100);
+        return state.dailyXPDate !== todayKey()
+          ? 0
+          : Math.min(((state.dailyWordsLearned || 0) / (state.dailyGoal || 5)) * 100, 100);
       },
 
       shouldCelebrateDailyGoal: () => {
         const state = get();
-        const today = todayKey();
-        if (!state.dailyGoalCompleted || state.dailyXPDate !== today) return false;
-        if (state.dailyGoalCompletedAt) {
-          const diffSeconds = (Date.now() - new Date(state.dailyGoalCompletedAt).getTime()) / 1000;
-          return diffSeconds < 15;
-        }
-        return false;
+        if (!state.dailyGoalCompleted || state.dailyXPDate !== todayKey() || !state.dailyGoalCompletedAt) return false;
+        return (Date.now() - new Date(state.dailyGoalCompletedAt).getTime()) / 1000 < 15;
       },
 
       acknowledgeDailyGoalCelebration: () => set({ dailyGoalCompletedAt: null }),
 
-      syncDailyGoalFromAPI: (goalData) =>
+      syncDailyGoalFromAPI: (data) =>
         set({
-          dailyGoal: goalData?.daily_goal ?? get().dailyGoal,
-          dailyXP: goalData?.daily_xp ?? get().dailyXP,
-          dailyXPDate: goalData?.date ?? get().dailyXPDate,
+          dailyGoal: data?.daily_goal ?? get().dailyGoal,
+          dailyXP: data?.daily_xp ?? get().dailyXP,
+          dailyXPDate: data?.date ?? get().dailyXPDate,
         }),
 
-      // ── Streak ─────────────────────────────────────────────────────────────
+      // ── Streak ────────────────────────────────────────────────────────────
       localIncrementStreak: () =>
         set((state) => {
           const today = todayKey();
           const last = state.lastSessionDate;
           if (last === today) return {};
-          const gap = daysBetween(last, today);
-          if (gap <= 1) return { streak: (state.streak || 0) + 1, lastSessionDate: today };
+          if (daysBetween(last, today) <= 1)
+            return { streak: (state.streak || 0) + 1, lastSessionDate: today };
           if ((state.streakFreezeCount || 0) > 0)
-            return {
-              streak: (state.streak || 0) + 1,
-              streakFreezeCount: (state.streakFreezeCount || 1) - 1,
-              lastSessionDate: today,
-            };
+            return { streak: (state.streak || 0) + 1, streakFreezeCount: (state.streakFreezeCount || 1) - 1, lastSessionDate: today };
           return { streak: 1, lastSessionDate: today };
         }),
 
-      updateStreak: (streakData) =>
+      updateStreak: (data) =>
         set({
-          streak: streakData?.current_streak ?? get().streak,
-          lastSessionDate: streakData?.last_read_at
-            ? streakData.last_read_at.slice(0, 10)
-            : get().lastSessionDate,
+          streak: data?.current_streak ?? get().streak,
+          lastSessionDate: data?.last_read_at ? data.last_read_at.slice(0, 10) : get().lastSessionDate,
         }),
 
       setLastSessionDate: (date) => set({ lastSessionDate: date }),
       incrementStreak: () => set((state) => ({ streak: (state.streak || 0) + 1 })),
       resetStreak: () => set({ streak: 0 }),
     }),
-    {
-      name: 'istiqo-user-storage',
-      storage: createJSONStorage(() => localStorage),
-    }
+    { name: 'istiqo-user-storage', storage: createJSONStorage(() => localStorage) }
   )
 );
 
-// Keep legacy getTranslation export so other files importing from i18n.js still work,
-// but also export the canonical `t` from here.
 export default useUserStore;

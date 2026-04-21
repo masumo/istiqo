@@ -22,10 +22,6 @@ export const useVocabCurriculum = () => {
   const sections = useMemo(() => {
     const learned = new Set(learnedRanks || []);
 
-    /**
-     * Returns true only if ALL lessons for a given unitKey are complete.
-     * Defined inside useMemo so lessonProgress is always fresh.
-     */
     const isUnitLessonComplete = (unitKey, unitWords) => {
       const lessons = buildLessons(unitWords);
       const totalLessons = lessons.length;
@@ -38,10 +34,10 @@ export const useVocabCurriculum = () => {
       return completedSet.size >= totalLessons;
     };
 
+    let globalPrevUnitFullyDone = true;
+
     return SECTIONS.map((sec) => {
       const units = [];
-      // Track whether the previous unit in this section is fully lesson-complete
-      let prevUnitFullyDone = true; // first unit in a section is always unlocked
 
       for (let u = sec.unitStart; u <= sec.unitEnd; u += 1) {
         const key          = getUnitKey(sec.section, u);
@@ -49,13 +45,10 @@ export const useVocabCurriculum = () => {
         const total        = words.length || 5;
         const learnedCount = words.filter((w) => learned.has(w.rank)).length;
 
-        // A unit is "lesson-complete" when all its lessons are recorded as done
         const lessonDone = isUnitLessonComplete(key, words);
 
-        // isActive = previous unit is 100% lesson-complete AND this unit is not yet done
-        const isActive = prevUnitFullyDone && !lessonDone;
-        // isLocked = the previous unit is NOT 100% done yet
-        const isLocked = !prevUnitFullyDone;
+        const isActive = globalPrevUnitFullyDone && !lessonDone;
+        const isLocked = !globalPrevUnitFullyDone;
 
         const displayProgress = lessonDone
           ? 100
@@ -78,8 +71,7 @@ export const useVocabCurriculum = () => {
           title:        `Unit ${u}`,
         });
 
-        // Once we encounter an incomplete unit, all subsequent units are locked.
-        if (!lessonDone) prevUnitFullyDone = false;
+        if (!lessonDone) globalPrevUnitFullyDone = false;
       }
       return { ...sec, units };
     });

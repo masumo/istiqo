@@ -1,423 +1,371 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import {
-  Flame, Star, Lock, CheckCircle2, Zap,
-  BookOpen, Link2, Layers, ScrollText, Sparkles,
-} from 'lucide-react';
-import { useUserStore, t, buildLessons } from '../store/userStore';
-import { useVocabCurriculum } from '../hooks/useVocabCurriculum';
-import { useDailyGoalSync } from '../hooks/useDailyGoalSync';
+import { Flame, Star, Lock, Check } from 'lucide-react';
+import { useUserStore, buildLessons, SECTIONS_DATA, getUnitsForSection, getUnitKey } from '../store/userStore';
 import { VOCAB_WORDS } from '../utils/wordFrequency';
-import GoalRing from '../components/Gamification/GoalRing';
-import NurMascot from '../components/NurMascot/NurMascot';
+import { useVocabStore } from '../store/vocabStore';
 
-// ── Section theming ───────────────────────────────────────────────────────────
-const SECTION_THEME = {
-  1: { icon: BookOpen,    gradient: 'from-emerald-500 to-teal-500',    ring: '#10b981', locked: '#a7f3d0', text: 'text-emerald-700', bg: 'bg-emerald-50',  border: 'border-emerald-200', btn: 'bg-emerald-600 hover:bg-emerald-700 shadow-emerald-200', title: 'The Foundations' },
-  2: { icon: Link2,       gradient: 'from-sky-500 to-cyan-500',        ring: '#0ea5e9', locked: '#bae6fd', text: 'text-sky-700',     bg: 'bg-sky-50',      border: 'border-sky-200',     btn: 'bg-sky-600 hover:bg-sky-700 shadow-sky-200', title: 'The Core Connectors' },
-  3: { icon: Layers,      gradient: 'from-violet-500 to-purple-500',   ring: '#8b5cf6', locked: '#ddd6fe', text: 'text-violet-700', bg: 'bg-violet-50',   border: 'border-violet-200',  btn: 'bg-violet-600 hover:bg-violet-700 shadow-violet-200', title: 'Contextual Mastery' },
-  4: { icon: ScrollText,  gradient: 'from-amber-500 to-orange-500',    ring: '#f59e0b', locked: '#fde68a', text: 'text-amber-700',  bg: 'bg-amber-50',    border: 'border-amber-200',   btn: 'bg-amber-600 hover:bg-amber-700 shadow-amber-200', title: 'Stories of Prophets' },
-  5: { icon: Sparkles,    gradient: 'from-rose-500 to-pink-500',       ring: '#f43f5e', locked: '#fecdd3', text: 'text-rose-700',   bg: 'bg-rose-50',     border: 'border-rose-200',    btn: 'bg-rose-600 hover:bg-rose-700 shadow-rose-200', title: 'Advanced Nuances' },
+// ─── Design tokens ────────────────────────────────────────────────────────────
+const C = {
+  green: '#58CC02',
+  greenDark: '#46A302',
+  teal: '#37607D',
+  tealDark: '#2A4B63',
+  bg: '#F6F3E6',
+  doneGreen: '#D7FFB1',
+  doneBorder: '#218151',
+  lockedGray: '#E5E7EB',
+  lockedBorder: '#9CA3AF',
+  ringTrack: '#E5E7EB',
+  pathLine: '#E5E7EB',
 };
 
-// ── ProgressRing ──────────────────────────────────────────────────────────────
-const ProgressRing = ({ progress, size = 88, strokeWidth = 8, color, isActive, isCompleted }) => {
-  const radius = (size - strokeWidth) / 2;
-  const circumference = radius * 2 * Math.PI;
-  const display = isCompleted ? 100 : Math.min(progress, 98);
-
+// ─── SVG Circular Progress Ring ───────────────────────────────────────────────
+const ProgressRing = ({ pct = 0, size = 80, stroke = 6 }) => {
+  const r = (size - stroke) / 2;
+  const circ = 2 * Math.PI * r;
+  const offset = circ - (pct / 100) * circ;
   return (
-    <div className="relative flex items-center justify-center" style={{ width: size, height: size }}>
-      <svg width={size} height={size} className="transform -rotate-90">
-        <circle cx={size / 2} cy={size / 2} r={radius} fill="transparent" stroke="#e2e8f0" strokeWidth={strokeWidth} />
-        <motion.circle
-          cx={size / 2} cy={size / 2} r={radius}
-          fill="transparent"
-          stroke={color}
-          strokeWidth={strokeWidth}
-          strokeDasharray={circumference}
-          initial={{ strokeDashoffset: circumference }}
-          animate={{ strokeDashoffset: circumference - (display / 100) * circumference }}
-          transition={{ duration: 1.2, ease: 'easeOut' }}
-          strokeLinecap="round"
-        />
-      </svg>
-      <div className="absolute inset-0 flex items-center justify-center">
-        {isCompleted ? (
-          <CheckCircle2 className="w-8 h-8" style={{ color }} />
-        ) : (
-          <span className="text-lg font-extrabold text-slate-700">{Math.round(display)}%</span>
-        )}
-      </div>
-      {isActive && (
-        <motion.div
-          className="absolute inset-0 rounded-full"
-          style={{ border: `3px solid ${color}` }}
-          animate={{ scale: [1, 1.08, 1], opacity: [0.6, 0.2, 0.6] }}
-          transition={{ repeat: Infinity, duration: 2, ease: 'easeInOut' }}
-        />
-      )}
-    </div>
+    <svg width={size} height={size} style={{ position: 'absolute', top: 0, left: 0, pointerEvents: 'none' }}>
+      {/* Track */}
+      <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke={C.ringTrack} strokeWidth={stroke} />
+      {/* Progress */}
+      <circle
+        cx={size / 2}
+        cy={size / 2}
+        r={r}
+        fill="none"
+        stroke={pct >= 100 ? C.doneBorder : C.green}
+        strokeWidth={stroke}
+        strokeDasharray={circ}
+        strokeDashoffset={offset}
+        strokeLinecap="round"
+        transform={`rotate(-90 ${size / 2} ${size / 2})`}
+        style={{ transition: 'stroke-dashoffset 0.7s ease' }}
+      />
+    </svg>
   );
 };
 
-// ── LessonPips: small dots showing lesson completion ─────────────────────────
-const LessonPips = ({ completedCount, total, color }) => (
-  <div className="flex gap-1 mt-1">
-    {Array.from({ length: total }).map((_, i) => (
-      <div
-        key={i}
-        className="w-2 h-2 rounded-full transition-all"
-        style={{ background: i < completedCount ? color : '#e2e8f0' }}
-      />
-    ))}
+// ─── Header ───────────────────────────────────────────────────────────────────
+const HeaderBar = ({ streak, xp }) => (
+  <div className="sticky top-0 z-40 bg-white border-b-2 border-gray-100 shadow-sm">
+    <div className="max-w-md mx-auto px-4 py-3 flex items-center justify-between">
+      <h1 className="text-xl font-bold tracking-tight" style={{ color: C.teal }}>Istiqo</h1>
+      <div className="flex items-center gap-5">
+        <div className="flex items-center gap-1.5">
+          <Flame className="w-5 h-5 text-orange-500 fill-orange-500" />
+          <span className="text-sm font-bold text-gray-700">{streak}</span>
+          <span className="text-xs font-medium text-gray-400">Day Streak</span>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <Star className="w-5 h-5 text-yellow-400 fill-yellow-400" />
+          <span className="text-sm font-bold text-gray-700">{xp}</span>
+          <span className="text-xs font-medium text-gray-400">XP</span>
+        </div>
+        <button className="w-8 h-8 flex items-center justify-center rounded-xl hover:bg-gray-100 transition-colors">
+          <svg className="w-5 h-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+          </svg>
+        </button>
+      </div>
+    </div>
   </div>
 );
 
-// ── UnitNode ──────────────────────────────────────────────────────────────────
-const UnitNode = ({ unit, theme, onStart, lessonProgress }) => {
-  const { preferredLanguage } = useUserStore();
-  const lang = preferredLanguage || 'en';
-  const isClickable = !unit.isLocked;
+// ─── Section Banner ───────────────────────────────────────────────────────────
+const SectionBanner = ({ title, subtitle, color }) => (
+  <div
+    className="w-full rounded-2xl p-6 mb-4 flex flex-col justify-end min-h-[120px] relative overflow-hidden border-2 border-b-[6px]"
+    style={{ backgroundColor: color, borderColor: '#2A4B63' }}
+  >
+    <div className="absolute inset-0 opacity-10"
+      style={{ background: 'radial-gradient(circle at 80% 20%, #fff 0%, transparent 60%)' }} />
+    <div className="relative z-10">
+      <div className="text-[10px] font-bold uppercase tracking-widest text-white/60 mb-1">Section 1 of 5</div>
+      <h2 className="text-xl font-black text-white mb-0.5">{title}</h2>
+      <p className="text-xs text-white/70 font-medium">{subtitle}</p>
+    </div>
+  </div>
+);
 
-  // Build lesson count for this unit
-  const unitWords = VOCAB_WORDS.filter(
-    (w) => w.section === unit.section && w.unit === unit.unit
-  );
-  const lessons = buildLessons(unitWords);
-  const totalLessons = lessons.length;
-  const completedLessons = lessonProgress?.completedLessons?.length ?? 0;
+// ─── Zig-Zag path constants ───────────────────────────────────────────────────
+const RING_SIZE = 84;   // outer ring SVG size
+const BUBBLE_SIZE = 64; // inner circle button
+const RING_STROKE = 7;
+const ROW_H = 130;      // vertical gap between circles
 
-  // A unit is "fully done" only if all lessons are completed
-  const allLessonsDone = completedLessons >= totalLessons && totalLessons > 0;
-
-  const statusLabel = allLessonsDone
-    ? t(lang, 'unit.completed')
-    : unit.isActive
-    ? t(lang, 'unit.active')
-    : unit.isLocked
-    ? t(lang, 'unit.locked')
-    : t(lang, 'unit.available');
-
-  const btnLabel = allLessonsDone
-    ? t(lang, 'unit.review')
-    : completedLessons > 0
-    ? t(lang, 'unit.continue')
-    : t(lang, 'unit.start');
-
-  return (
-    <motion.div
-      initial={{ opacity: 0, x: -20 }}
-      animate={{ opacity: 1, x: 0 }}
-      transition={{ duration: 0.3 }}
-      className={`flex items-center gap-4 ${unit.isLocked ? 'opacity-50' : ''}`}
-    >
-      {/* Ring */}
-      <motion.div
-        animate={unit.isActive ? { scale: [1, 1.05, 1] } : {}}
-        transition={unit.isActive ? { repeat: Infinity, duration: 1.8 } : {}}
-        className="shrink-0"
-      >
-        <ProgressRing
-          progress={allLessonsDone ? 100 : Math.round((completedLessons / Math.max(totalLessons, 1)) * 100)}
-          color={theme.ring}
-          isActive={unit.isActive && !allLessonsDone}
-          isCompleted={allLessonsDone}
-        />
-      </motion.div>
-
-      {/* Card */}
-      <div
-        className={`flex-1 rounded-2xl border p-4 shadow-sm transition-all ${
-          unit.isActive && !allLessonsDone
-            ? `bg-white ${theme.border} shadow-md`
-            : allLessonsDone
-            ? `${theme.bg} ${theme.border}`
-            : 'bg-white border-slate-100'
-        }`}
-      >
-        <div className="flex items-center justify-between gap-3">
-          <div className="flex flex-col">
-            <span className={`text-[10px] uppercase tracking-widest font-bold ${theme.text}`}>
-              {statusLabel}
-            </span>
-            <span className="text-base font-extrabold text-slate-800 mt-0.5">{unit.title}</span>
-            <span className="text-xs text-slate-500 mt-0.5">
-              {unitWords.length} {t(lang, 'stats.words')}
-              {totalLessons > 0 && (
-                <span className="ml-1 text-slate-400">· {totalLessons} lessons</span>
-              )}
-            </span>
-            {/* Lesson progress pips */}
-            {!unit.isLocked && totalLessons > 0 && (
-              <LessonPips
-                completedCount={completedLessons}
-                total={totalLessons}
-                color={theme.ring}
-              />
-            )}
-          </div>
-
-          {unit.isLocked ? (
-            <div className="p-3 rounded-xl bg-slate-100">
-              <Lock className="w-5 h-5 text-slate-400" />
-            </div>
-          ) : (
-            <button
-              id={`unit-btn-${unit.section}-${unit.unit}`}
-              onClick={() => onStart(unit)}
-              disabled={!isClickable}
-              className={`px-5 py-2.5 rounded-xl font-bold text-sm text-white shadow-lg transition-all ${theme.btn}`}
-            >
-              {btnLabel}
-            </button>
-          )}
-        </div>
-      </div>
-    </motion.div>
-  );
+// Zig-Zag X offset per index: 0, +56, 0, -56, +56, …
+const zigX = (idx) => {
+  const cycle = idx % 4;
+  if (cycle === 0) return 0;
+  if (cycle === 1) return 56;
+  if (cycle === 2) return 0;
+  return -56;
 };
 
-// ── SectionHeader ─────────────────────────────────────────────────────────────
-const SectionHeader = ({ sec, theme }) => {
-  const Icon = theme.icon;
-  const displayTitle = theme.title || sec.title;
+// ─── Unit Circle (single node on the path) ───────────────────────────────────
+const UnitCircle = ({ unitNum, isLocked, isCompleted, pct, isNext, onStart }) => {
+  const ringOffset = (RING_SIZE - BUBBLE_SIZE) / 2;
+  const bubbleBg = isCompleted ? C.doneGreen : isLocked ? C.lockedGray : C.teal;
+  const bubbleBorder = isCompleted ? C.doneBorder : isLocked ? C.lockedBorder : C.tealDark;
+  const canClick = !isLocked;
+
   return (
-    <div className={`relative overflow-hidden rounded-3xl bg-gradient-to-r ${theme.gradient} p-5 text-white shadow-lg`}>
-      <div className="flex items-center gap-4">
-        <div className="p-3 bg-white/20 rounded-2xl backdrop-blur-sm">
-          <Icon className="w-7 h-7 text-white" />
-        </div>
-        <div>
-          <div className="text-xs font-bold uppercase tracking-widest text-white/70">
-            Section {sec.section}
+    <div className="flex flex-col items-center" style={{ position: 'relative' }}>
+      {/* "Start" callout above next unit */}
+      {isNext && (
+        <motion.div
+          initial={{ opacity: 0, y: -6 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mb-2 flex flex-col items-center"
+        >
+          <div
+            className="px-4 py-1.5 rounded-full font-black text-xs text-white shadow-lg"
+            style={{ backgroundColor: C.green }}
+          >
+            Start →
           </div>
-          <div className="text-xl font-extrabold">{displayTitle}</div>
-          <div className="text-xs text-white/70 mt-0.5">
-            Unit {sec.unitStart}–{sec.unitEnd} · Rank #{sec.rankStart}–{sec.rankEnd}
-          </div>
-        </div>
+          <div className="w-2.5 h-2.5 -mt-1.5 rotate-45"
+            style={{ backgroundColor: C.green }} />
+        </motion.div>
+      )}
+
+      {/* Ring + Bubble wrapper */}
+      <div style={{ position: 'relative', width: RING_SIZE, height: RING_SIZE }}>
+        {/* SVG Progress Ring */}
+        <ProgressRing pct={pct} size={RING_SIZE} stroke={RING_STROKE} />
+
+        {/* Inner Bubble Button */}
+        <button
+          onClick={canClick ? onStart : undefined}
+          disabled={!canClick}
+          style={{
+            position: 'absolute',
+            top: ringOffset,
+            left: ringOffset,
+            width: BUBBLE_SIZE,
+            height: BUBBLE_SIZE,
+            borderRadius: '50%',
+            backgroundColor: bubbleBg,
+            border: `2px solid ${bubbleBorder}`,
+            borderBottom: `6px solid ${bubbleBorder}`,
+            boxShadow: canClick ? `0 4px 0 ${bubbleBorder}` : 'none',
+            cursor: canClick ? 'pointer' : 'default',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            transition: 'transform 0.1s, border-bottom-width 0.1s',
+          }}
+          className={`select-none ${canClick ? 'hover:scale-105 active:translate-y-[3px] active:border-b-[3px]' : ''}`}
+        >
+          {isCompleted ? (
+            <Check className="w-7 h-7" style={{ color: C.doneBorder }} strokeWidth={3} />
+          ) : isLocked ? (
+            <Lock className="w-5 h-5" style={{ color: C.lockedBorder }} />
+          ) : (
+            <span className="text-sm font-black text-white">U{unitNum}</span>
+          )}
+        </button>
       </div>
-      <div className="absolute -right-6 -top-6 w-24 h-24 bg-white/10 rounded-full blur-xl" />
-      <div className="absolute -right-2 top-8 w-12 h-12 bg-white/10 rounded-full blur-md" />
+
+      {/* Unit label */}
+      <div className="mt-2 text-center">
+        <div
+          className="text-xs font-bold"
+          style={{ color: isLocked ? C.lockedBorder : isCompleted ? C.doneBorder : C.teal }}
+        >
+          Unit {unitNum}
+        </div>
+        {isLocked && (
+          <div className="flex items-center justify-center gap-0.5 mt-0.5">
+            <Lock className="w-2.5 h-2.5 text-gray-400" />
+            <span className="text-[9px] text-gray-400 font-medium">Complete previous unit</span>
+          </div>
+        )}
+        {isCompleted && (
+          <div className="text-[9px] font-black mt-0.5" style={{ color: C.doneBorder }}>
+            Complete ✓
+          </div>
+        )}
+        {!isLocked && !isCompleted && (
+          <div className="text-[9px] text-gray-400 mt-0.5 font-medium">{pct}% done</div>
+        )}
+      </div>
     </div>
   );
 };
 
-// ── Home ──────────────────────────────────────────────────────────────────────
-const Home = () => {
-  const {
-    preferredLanguage,
-    streak,
-    xp,
-    dailyGoal,
-    getDailyProgress,
-    shouldCelebrateDailyGoal,
-    acknowledgeDailyGoalCelebration,
-    dailyWordsLearned,
-    lessonProgress,
-    isUnitFullyComplete,
-  } = useUserStore();
+// ─── Journey Path (zig-zag of unit circles) ───────────────────────────────────
+const JourneyPath = ({ units, getUnitStatus, onUnitStart }) => {
+  const count = units.length;
+  const svgH = count * ROW_H + RING_SIZE + 60;
+  const centerX = 160; // half of max-w-md ~= 320px half
 
-  const lang = preferredLanguage || 'en';
-
-  const { sections, startUnit } = useVocabCurriculum();
-  const { updateDailyProgress } = useDailyGoalSync();
-  const [showCelebration, setShowCelebration] = useState(false);
-
-  const totalLearned = useMemo(
-    () =>
-      sections.reduce((acc, sec) => acc + sec.units.reduce((a, u) => a + u.learnedCount, 0), 0),
-    [sections]
-  );
-
-  const dailyProgress = getDailyProgress();
-
-  // ── Daily goal celebration ─────────────────────────────────────────────────
-  useEffect(() => {
-    if (shouldCelebrateDailyGoal()) {
-      setShowCelebration(true);
-      const timer = setTimeout(() => {
-        setShowCelebration(false);
-        acknowledgeDailyGoalCelebration();
-      }, 5000);
-      return () => clearTimeout(timer);
-    }
-  }, [dailyWordsLearned, shouldCelebrateDailyGoal, acknowledgeDailyGoalCelebration]);
-
-  // ── Helper: lesson progress for a unit ────────────────────────────────────
-  const getUnitLessonProgress = (unitKey) =>
-    lessonProgress?.[unitKey] || { completedLessons: [], totalLessons: 0 };
+  // Pre-calc positions
+  const positions = units.map((_, i) => ({
+    cx: centerX + zigX(i),
+    cy: i * ROW_H + RING_SIZE / 2,
+  }));
 
   return (
-    <div className="min-h-screen bg-slate-50 font-sans">
-      <div className="max-w-2xl mx-auto px-4 py-6 space-y-8">
+    <div className="relative w-full" style={{ height: svgH }}>
+      {/* SVG connecting lines */}
+      <svg
+        className="absolute inset-0 w-full pointer-events-none"
+        style={{ height: svgH }}
+        viewBox={`0 0 320 ${svgH}`}
+        preserveAspectRatio="none"
+      >
+        {positions.slice(0, -1).map((pos, i) => {
+          const next = positions[i + 1];
+          const { isCompleted } = getUnitStatus(units[i]);
+          return (
+            <line
+              key={i}
+              x1={pos.cx} y1={pos.cy + RING_SIZE / 2}
+              x2={next.cx} y2={next.cy - RING_SIZE / 2}
+              stroke={isCompleted ? C.doneBorder : C.pathLine}
+              strokeWidth={isCompleted ? 3 : 2}
+              strokeDasharray={isCompleted ? 'none' : '6 5'}
+              strokeLinecap="round"
+            />
+          );
+        })}
+      </svg>
 
-        {/* ── Daily Goal Celebration Modal ──────────────────────────────── */}
-        <AnimatePresence>
-          {showCelebration && (
-            <motion.div
-              id="daily-goal-celebration-modal"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
-              onClick={() => { setShowCelebration(false); acknowledgeDailyGoalCelebration(); }}
-            >
-              <motion.div
-                initial={{ scale: 0.8, y: 20 }}
-                animate={{ scale: 1, y: 0 }}
-                exit={{ scale: 0.8, y: 20 }}
-                className="bg-white rounded-3xl p-8 shadow-2xl max-w-md mx-4 text-center"
-                onClick={(e) => e.stopPropagation()}
-              >
-                <NurMascot mood="celebrate" size={160} />
-                <h2 className="text-3xl font-extrabold text-slate-900 mt-4 mb-2">
-                  {t(lang, 'celebration.title')}
-                </h2>
-                <p className="text-lg text-slate-600 mb-6">
-                  {t(lang, 'celebration.description', { wordsLearned: dailyWordsLearned })}
-                </p>
-                <button
-                  id="celebration-continue-btn"
-                  onClick={() => { setShowCelebration(false); acknowledgeDailyGoalCelebration(); }}
-                  className="px-8 py-3 bg-emerald-600 text-white rounded-2xl font-bold text-lg hover:bg-emerald-700 transition-colors shadow-lg shadow-emerald-200"
-                >
-                  {t(lang, 'celebration.continue')}
-                </button>
-              </motion.div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+      {/* Unit circles */}
+      {units.map((unitNum, idx) => {
+        const { isLocked, isCompleted, completedCount, totalLessons } = getUnitStatus(unitNum);
+        const pct = totalLessons > 0 ? Math.round((completedCount / totalLessons) * 100) : 0;
+        const isNext = !isLocked && !isCompleted && (idx === 0 || getUnitStatus(units[idx - 1]).isCompleted);
 
-        {/* ── Stats Header ─────────────────────────────────────────────────── */}
-        <div className="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden">
-          <div className="px-6 pt-6 pb-3">
-            <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">Istiqo</h1>
-            <p className="text-sm text-slate-500 mt-0.5">
-              {t(lang, 'appSubtitle')}
-            </p>
-          </div>
+        return (
+          <motion.div
+            key={unitNum}
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: idx * 0.08, duration: 0.3, type: 'spring', stiffness: 200 }}
+            style={{
+              position: 'absolute',
+              left: positions[idx].cx - RING_SIZE / 2,
+              top: positions[idx].cy - RING_SIZE / 2,
+            }}
+          >
+            <UnitCircle
+              unitNum={unitNum}
+              isLocked={isLocked}
+              isCompleted={isCompleted}
+              pct={pct}
+              isNext={isNext}
+              onStart={() => onUnitStart(unitNum)}
+            />
+          </motion.div>
+        );
+      })}
+    </div>
+  );
+};
 
-          <div className="grid grid-cols-4 divide-x divide-slate-100 border-t border-slate-100">
-            {/* Streak */}
-            <div className="flex flex-col items-center py-4 gap-1">
-              <div className="flex items-center gap-1.5">
-                <Flame className="w-5 h-5 text-orange-500" />
-                <span className="text-2xl font-extrabold text-slate-800">{streak}</span>
-              </div>
-              <span className="text-[10px] uppercase tracking-widest text-slate-400 font-bold">
-                {t(lang, 'stats.streak')}
-              </span>
-            </div>
+// ─── Main Home ────────────────────────────────────────────────────────────────
+const Home = () => {
+  const { streak, xp, lessonProgress } = useUserStore();
+  const setView = useVocabStore((s) => s.setView);
+  const startUnit = useVocabStore((s) => s.startUnit);
+  const setCurrentQuizWords = useUserStore((s) => s.setCurrentQuizWords);
 
-            {/* XP */}
-            <div className="flex flex-col items-center py-4 gap-1">
-              <div className="flex items-center gap-1.5">
-                <Star className="w-5 h-5 text-amber-500 fill-amber-400" />
-                <span className="text-2xl font-extrabold text-slate-800">{xp}</span>
-              </div>
-              <span className="text-[10px] uppercase tracking-widest text-slate-400 font-bold">
-                {t(lang, 'stats.xp')}
-              </span>
-            </div>
+  const section = SECTIONS_DATA[0];
+  const units = getUnitsForSection(1).map(({ unit }) => unit);
 
-            {/* Words */}
-            <div className="flex flex-col items-center py-4 gap-1">
-              <div className="flex items-center gap-1.5">
-                <Zap className="w-5 h-5 text-emerald-500" />
-                <span className="text-2xl font-extrabold text-slate-800">{totalLearned}</span>
-              </div>
-              <span className="text-[10px] uppercase tracking-widest text-slate-400 font-bold">
-                {t(lang, 'stats.words')}
-              </span>
-            </div>
+  const getUnitStatus = (unitNum) => {
+    const unitKey = getUnitKey(1, unitNum);
+    const unitWords = VOCAB_WORDS.filter((w) => w.section === 1 && w.unit === unitNum);
+    const totalLessons = buildLessons(unitWords).length;
+    const lp = lessonProgress?.[unitKey] || { completedLessons: [], totalLessons };
+    const completedCount = new Set(lp.completedLessons ?? []).size;
+    const isCompleted = totalLessons > 0 && completedCount >= totalLessons;
 
-            {/* Daily Goal Ring */}
-            <div className="flex flex-col items-center py-4 gap-1">
-              <GoalRing
-                progress={dailyProgress}
-                size={48}
-                strokeWidth={5}
-                color="#10b981"
-                isActive={dailyProgress > 0 && dailyProgress < 100}
-                isCompleted={dailyProgress >= 100}
-              />
-              <span className="text-[10px] uppercase tracking-widest text-slate-400 font-bold mt-1">
-                {dailyWordsLearned}/{dailyGoal}
-              </span>
-            </div>
-          </div>
+    if (unitNum === 1) {
+      return { isLocked: false, isCompleted, completedCount, totalLessons };
+    }
+
+    const prevKey = getUnitKey(1, unitNum - 1);
+    const prevWords = VOCAB_WORDS.filter((w) => w.section === 1 && w.unit === unitNum - 1);
+    const prevTotal = buildLessons(prevWords).length;
+    const prevLP = lessonProgress?.[prevKey] || { completedLessons: [] };
+    const prevDone = new Set(prevLP.completedLessons ?? []).size >= prevTotal && prevTotal > 0;
+
+    return { isLocked: !prevDone, isCompleted, completedCount, totalLessons };
+  };
+
+  const handleUnitStart = (unitNum) => {
+    const unitKey = `1:${unitNum}`;
+    const unitWords = VOCAB_WORDS.filter((w) => w.section === 1 && w.unit === unitNum);
+    const lessons = buildLessons(unitWords);
+    const lp = lessonProgress?.[unitKey] || { completedLessons: [], totalLessons: lessons.length };
+    const completedSet = new Set(lp.completedLessons ?? []);
+    const nextIdx = lessons.findIndex((_, i) => !completedSet.has(i));
+    const actualIdx = nextIdx === -1 ? 0 : nextIdx;
+
+    setCurrentQuizWords(lessons[actualIdx]?.words ?? []);
+    startUnit({
+      section: 1,
+      unit: unitNum,
+      ranks: (lessons[actualIdx]?.words ?? []).map((w) => w.rank),
+      lessonIndex: actualIdx,
+      totalLessons: lessons.length,
+      unitKey,
+    });
+  };
+
+  return (
+    <div className="min-h-screen" style={{ backgroundColor: C.bg }}>
+      <HeaderBar streak={streak} xp={xp} />
+
+      <main className="max-w-md mx-auto px-4 py-6">
+        <SectionBanner
+          title={section.title}
+          subtitle={section.subtitle}
+          color={section.themeColor}
+        />
+
+        {/* Unit count summary */}
+        <div className="flex items-center justify-between mb-6 px-1">
+          <span className="text-xs font-bold text-gray-400 uppercase tracking-widest">Your Journey</span>
+          <span className="text-xs font-bold" style={{ color: C.teal }}>
+            {units.filter((u) => getUnitStatus(u).isCompleted).length}/{units.length} Units
+          </span>
         </div>
 
-        {/* ── Roadmap Sections ──────────────────────────────────────────────── */}
-        <AnimatePresence>
-          {sections.map((sec, sIdx) => {
-            const theme = SECTION_THEME[sec.section] || SECTION_THEME[1];
-            return (
-              <motion.div
-                key={sec.section}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: sIdx * 0.08, duration: 0.4 }}
-                className="space-y-4"
-              >
-                <SectionHeader sec={sec} theme={theme} />
+        {/* Zig-Zag Journey */}
+        <JourneyPath
+          units={units}
+          getUnitStatus={getUnitStatus}
+          onUnitStart={handleUnitStart}
+        />
 
-                <div className="relative pl-2">
-                  {/* Connector line */}
-                  <div className="absolute left-[43px] top-0 bottom-0 w-0.5 bg-slate-200 rounded-full" />
-
-                  <div className="space-y-4">
-                    {sec.units.map((unit) => {
-                      const unitKey = `${unit.section}:${unit.unit}`;
-                      const lp = getUnitLessonProgress(unitKey);
-
-                      return (
-                        <UnitNode
-                          key={unit.key}
-                          unit={unit}
-                          theme={theme}
-                          lessonProgress={lp}
-                          onStart={(u) => {
-                            // Compute lesson index to start on (first incomplete)
-                            const unitWords = VOCAB_WORDS.filter(
-                              (w) => w.section === u.section && w.unit === u.unit
-                            );
-                            const lessons = buildLessons(unitWords);
-                            const completedSet = new Set(
-                              Array.isArray(lp.completedLessons) ? lp.completedLessons : []
-                            );
-                            const nextLesson = lessons.findIndex(
-                              (_, i) => !completedSet.has(i)
-                            );
-                            const lessonIdx = nextLesson === -1 ? 0 : nextLesson;
-                            const lessonWords = lessons[lessonIdx]?.words || [];
-
-                            // Start the unit session with this lesson's words
-                            startUnit({
-                              section: u.section,
-                              unit: u.unit,
-                              count: lessonWords.length || 5,
-                              // Pass lesson meta into session
-                              lessonIndex: lessonIdx,
-                              totalLessons: lessons.length,
-                              unitKey,
-                            });
-                          }}
-                        />
-                      );
-                    })}
-                  </div>
-                </div>
-              </motion.div>
-            );
-          })}
-        </AnimatePresence>
-
-        {/* Footer padding */}
-        <div className="h-8" />
-      </div>
+        {/* Section 2 Locked Teaser */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.5 }}
+          className="mt-8"
+        >
+          <div className="w-full rounded-2xl border-2 border-dashed border-gray-200 bg-gray-50 p-4 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center">
+                <Lock className="w-5 h-5 text-gray-400" />
+              </div>
+              <div>
+                <div className="text-sm font-bold text-gray-400">Section 2</div>
+                <div className="text-xs text-gray-300">The Core Connectors</div>
+              </div>
+            </div>
+            <span className="text-xs font-medium text-gray-300">Locked</span>
+          </div>
+        </motion.div>
+      </main>
     </div>
   );
 };
