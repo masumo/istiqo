@@ -81,18 +81,6 @@ const MCQQuestion = ({ word, allWords, onAnswer }) => {
     onAnswer(correct, option);
   };
 
-  const getOptionStyle = (option) => {
-    const isSelected = selected === option;
-    const isCorrect = option === (word.translation?.en ?? '');
-    const base = `w-full p-4 text-left font-bold text-base flex items-center min-h-[56px] cursor-pointer select-none ${btn3d}`;
-
-    if (!locked) return `${base} bg-white text-slate-700 border-gray-200 hover:bg-slate-50`;
-    if (isSelected && isCorrect) return `${base} bg-[${C.doneGreen}] text-[${C.doneBorder}] border-[${C.doneBorder}] cursor-default`;
-    if (isSelected && !isCorrect) return `${base} bg-[#FFDFE0] text-[#C62828] border-[#C62828] cursor-default`;
-    if (!isSelected && isCorrect) return `${base} bg-[${C.doneGreen}] text-[${C.doneBorder}] border-[${C.doneBorder}] cursor-default`;
-    return `${base} bg-white text-slate-400 border-gray-200 opacity-50 cursor-default`;
-  };
-
   // Inline styles to avoid Tailwind JIT purge issues with dynamic colors
   const getOptionInlineStyle = (option) => {
     const isSelected = selected === option;
@@ -266,13 +254,13 @@ const ResultsScreen = ({ score, total, xpEarned, lessonNum, totalLessons, onCont
         {/* Lesson badge */}
         <div className="text-xs font-black uppercase tracking-widest px-4 py-1.5 rounded-full border-2 border-b-4"
           style={{ backgroundColor: C.doneGreen, borderColor: C.doneBorder, color: C.doneBorder }}>
-          Lesson {lessonNum} of {totalLessons}
+          Pelajaran {lessonNum} dari {totalLessons}
         </div>
 
         <NurMascot mood="celebrate" size={160} sparkles={true} />
 
         <h2 className="text-2xl font-extrabold text-slate-800 text-center">
-          {isPerfect ? 'Perfect Score!' : 'Lesson Complete!'}
+          {isPerfect ? 'Skor Sempurna!' : 'Pelajaran Selesai!'}
         </h2>
 
         {/* Stats grid */}
@@ -280,12 +268,12 @@ const ResultsScreen = ({ score, total, xpEarned, lessonNum, totalLessons, onCont
           <div className="flex flex-col items-center gap-1 rounded-xl p-4 border-2 border-b-4 border-slate-100">
             <Trophy className="w-5 h-5 text-amber-500" />
             <span className="text-xl font-black text-slate-800">{score}/{total}</span>
-            <span className="text-[10px] uppercase tracking-widest font-bold text-slate-400">Score</span>
+            <span className="text-[10px] uppercase tracking-widest font-bold text-slate-400">Skor</span>
           </div>
           <div className="flex flex-col items-center gap-1 rounded-xl p-4 border-2 border-b-4 border-slate-100">
             <CheckCircle2 className="w-5 h-5" style={{ color: C.doneBorder }} />
             <span className="text-xl font-black" style={{ color: C.doneBorder }}>{pct}%</span>
-            <span className="text-[10px] uppercase tracking-widest font-bold text-slate-400">Accuracy</span>
+            <span className="text-[10px] uppercase tracking-widest font-bold text-slate-400">Akurasi</span>
           </div>
           <div className="flex flex-col items-center gap-1 rounded-xl p-4 border-2 border-b-4 border-amber-100">
             <Star className="w-5 h-5 text-amber-500 fill-amber-400" />
@@ -301,7 +289,7 @@ const ResultsScreen = ({ score, total, xpEarned, lessonNum, totalLessons, onCont
           className={`w-full py-4 font-black text-xl text-white ${btn3d} border-b-[6px]`}
           style={{ backgroundColor: C.teal, borderColor: C.tealDark }}
         >
-          Continue
+          Lanjut
         </motion.button>
       </div>
     </motion.div>
@@ -315,7 +303,7 @@ const LessonBadge = ({ lessonIndex, totalLessons, qIdx, qTotal }) => (
       className="text-xs font-black uppercase px-3 py-1 rounded-full border-2 border-b-4"
       style={{ backgroundColor: C.doneGreen, borderColor: C.doneBorder, color: C.doneBorder }}
     >
-      Lesson {lessonIndex + 1} of {totalLessons}
+      Pelajaran {lessonIndex + 1} dari {totalLessons}
     </span>
     <span className="text-xs font-bold text-slate-400">{qIdx + 1} / {qTotal}</span>
   </div>
@@ -427,7 +415,7 @@ const Quiz = ({
       <div className="w-full min-h-[50vh] flex flex-col items-center justify-center p-4">
         <div className="w-12 h-12 rounded-full border-4 border-gray-200 animate-spin mb-4"
           style={{ borderTopColor: C.teal }} />
-        <p className="text-gray-500 font-medium">Loading quiz...</p>
+        <p className="text-gray-500 font-medium">Memuat kuis...</p>
       </div>
     );
   }
@@ -459,8 +447,8 @@ const Quiz = ({
     const isCorrect = mcqAnswered?.correct;
     const nextBtnLabel = mcqAnswered
       ? isCorrect
-        ? qIdx < workingQueue.length - 1 ? 'Next' : 'Continue'
-        : 'Got it'
+        ? qIdx < workingQueue.length - 1 ? 'Lanjut' : 'Lanjut'
+        : 'Mengerti'
       : '';
 
     return (
@@ -494,7 +482,7 @@ const Quiz = ({
             className={`w-full bg-white ${btn3d} border-gray-200 p-6 flex flex-col items-center space-y-5`}
           >
             {/* Quiz label */}
-            <div className="text-xs font-black uppercase text-slate-400 tracking-widest">Quiz</div>
+            <div className="text-xs font-black uppercase text-slate-400 tracking-widest">Kuis</div>
 
             {/* Arabic word */}
             <div className="text-center py-2">
@@ -509,7 +497,7 @@ const Quiz = ({
 
             <MCQQuestion word={word} allWords={safeWords} onAnswer={handleMCQAnswer} />
 
-            {/* Next / Got it / Continue button */}
+            {/* Lanjut / Mengerti button */}
             <AnimatePresence>
               {mcqAnswered && (
                 <motion.button
@@ -565,7 +553,7 @@ const Quiz = ({
           className={`w-full bg-white ${btn3d} border-gray-200 p-6 flex flex-col items-center space-y-4`}
         >
           <div className="text-xs font-black uppercase text-slate-400 tracking-widest">
-            Match the Words
+            Cocokkan Kata
           </div>
           <MatchingPairs words={currentQuestion.words} onComplete={handleMatchComplete} />
         </motion.div>

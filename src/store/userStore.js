@@ -5,8 +5,8 @@ import { persist, createJSONStorage } from 'zustand/middleware';
 export const SECTIONS_DATA = [
   {
     section: 1,
-    title: 'The Foundations',
-    subtitle: 'Master the 50 most-used Quranic words',
+    title: 'Pondasi Utama',
+    subtitle: 'Kuasai 50 kata Al-Quran paling sering digunakan',
     units: [1, 2, 3, 4],
     themeColor: '#37607D',
     accentColor: '#4A8BBF',
@@ -19,7 +19,7 @@ export const getUnitsForSection = (sectionNum) => {
 };
 
 export const getSectionTitle = (sectionNum) =>
-  SECTIONS_DATA.find((s) => s.section === sectionNum)?.title ?? 'Section';
+  SECTIONS_DATA.find((s) => s.section === sectionNum)?.title ?? 'Bagian';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 const todayKey = () => new Date().toISOString().slice(0, 10);
@@ -57,70 +57,78 @@ export const isSectionFullyComplete = (sectionNum, lessonProgress) => {
   });
 };
 
-// ─── Backwards-compat t() shim (English only — no i18n keys leaked to UI) ────
-export const translations = { en: {} };
+// ─── Backwards-compat t() shim — Indonesian hardcoded ─────────────────────────
+export const translations = { id: {}, en: {} };
 export const t = (_lang, key) => {
   const map = {
-    'lesson.label': 'Lesson',
-    'lesson.of': 'of',
-    'quiz.title': 'Quiz',
-    'quiz.score': 'Score',
-    'quiz.perfect_score': 'Perfect Score!',
-    'quiz.completed': 'Lesson Complete!',
-    'quiz.continue': 'Continue',
-    'quiz.matchTitle': 'Match the Words',
+    'lesson.label': 'Pelajaran',
+    'lesson.of': 'dari',
+    'quiz.title': 'Kuis',
+    'quiz.score': 'Skor',
+    'quiz.perfect_score': 'Skor Sempurna!',
+    'quiz.completed': 'Pelajaran Selesai!',
+    'quiz.continue': 'Lanjut',
+    'quiz.matchTitle': 'Cocokkan Kata',
+    'loading_verse': 'Memuat ayat...',
+    'loading_audio': 'Memuat audio...',
+    'audio_error': 'Audio tidak tersedia',
+    'noActiveUnit': 'Tidak ada unit aktif.',
+    'back': 'Kembali',
   };
   return map[key] ?? key;
 };
 
-// ─── UI strings (English hardcoded) ──────────────────────────────────────────
+// ─── UI strings (Indonesian hardcoded) ───────────────────────────────────────
 export const uiStrings = {
-  streakLabel: 'Day Streak',
+  streakLabel: 'Hari Beruntun',
   xpLabel: 'XP',
-  dailyGoalLabel: 'Daily Goal',
-  settings: 'Settings',
-  start: 'Start',
-  lessonLabel: 'Lesson',
-  lessonOf: 'of',
-  lessonsDone: (done, total) => `${done}/${total} Lessons`,
-  unitComplete: 'Unit Complete!',
-  locked: 'Locked',
-  section: 'Section',
-  progress: 'Progress',
-  quizTitle: 'Quiz',
-  matchTitle: 'Match the Words',
-  wellDone: 'Well Done!',
-  perfectScore: 'Perfect Score!',
-  lessonComplete: 'Lesson Complete!',
-  next: 'Next',
-  gotIt: 'Got it',
-  score: 'Score',
-  accuracy: 'Accuracy',
-  accuracyLabel: 'Accuracy',
-  continue: 'Continue',
-  loading: 'Loading quiz...',
-  languageSelect: 'Select Language',
-  dailyGoal: 'Daily Goal',
-  notification: 'Notification Time',
-  wordsPerDay: 'words / day',
-  continueLabel: 'Continue',
-  startJourney: 'Start Journey',
-  bookmark: 'Bookmark',
-  learned: 'Learned',
-  prev: 'Previous',
-  back: 'Back',
-  check: 'Check',
-  loadingVerse: 'Loading verse...',
-  audioError: 'Audio unavailable',
-  audioLoading: 'Loading audio...',
-  mnemonicShow: 'Memory Trick',
-  mnemonicHide: 'Hide Mnemonic',
-  celebrationTitle: 'Daily Goal Achieved!',
-  celebrationDesc: (n) => `Amazing! You've learned ${n} words today!`,
-  noActiveUnit: 'No active unit.',
-  goalCasual: { label: 'Casual', description: '5 words/day' },
-  goalSerious: { label: 'Serious', description: '10 words/day' },
-  goalIntense: { label: 'Intensive', description: '15 words/day' },
+  dailyGoalLabel: 'Target Harian',
+  settings: 'Pengaturan',
+  start: 'Mulai',
+  lessonLabel: 'Pelajaran',
+  lessonOf: 'dari',
+  lessonsDone: (done, total) => `${done}/${total} Pelajaran`,
+  unitComplete: 'Unit Selesai!',
+  locked: 'Terkunci',
+  section: 'Bagian',
+  progress: 'Progres',
+  quizTitle: 'Kuis',
+  matchTitle: 'Cocokkan Kata',
+  wellDone: 'Luar Biasa!',
+  perfectScore: 'Skor Sempurna!',
+  lessonComplete: 'Pelajaran Selesai!',
+  next: 'Lanjut',
+  gotIt: 'Mengerti',
+  score: 'Skor',
+  accuracy: 'Akurasi',
+  accuracyLabel: 'Akurasi',
+  continue: 'Lanjut',
+  loading: 'Memuat kuis...',
+  languageSelect: 'Pilih Bahasa',
+  dailyGoal: 'Target Harian',
+  notification: 'Waktu Notifikasi',
+  notificationTime: 'Waktu Pengingat',
+  notificationsPermission: 'Izinkan Notifikasi',
+  wordsPerDay: 'kata / hari',
+  continueLabel: 'Lanjut',
+  startJourney: 'Mulai Perjalanan',
+  bookmark: 'Tandai',
+  learned: 'Dipelajari',
+  prev: 'Sebelumnya',
+  back: 'Kembali',
+  check: 'Cek',
+  skip: 'Lewati',
+  loadingVerse: 'Memuat ayat...',
+  audioError: 'Audio tidak tersedia',
+  audioLoading: 'Memuat audio...',
+  mnemonicShow: 'Trik Ingatan',
+  mnemonicHide: 'Sembunyikan',
+  celebrationTitle: 'Target Harian Tercapai!',
+  celebrationDesc: (n) => `Luar biasa! Kamu sudah belajar ${n} kata hari ini!`,
+  noActiveUnit: 'Tidak ada unit aktif.',
+  goalCasual: { label: 'Santai', description: '5 kata/hari' },
+  goalSerious: { label: 'Serius', description: '10 kata/hari' },
+  goalIntense: { label: 'Intensif', description: '15 kata/hari' },
   languages: { indonesian: 'Bahasa Indonesia', english: 'English' },
 };
 
@@ -128,7 +136,7 @@ export const uiStrings = {
 export const useUserStore = create(
   persist(
     (set, get) => ({
-      preferredLanguage: 'en',
+      preferredLanguage: 'id',
       dailyGoal: 5,
       notificationTime: '07:00',
       isOnboarded: false,

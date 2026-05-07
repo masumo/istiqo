@@ -7,7 +7,7 @@ import WordCard from '../components/WordCard/WordCard';
 import Quiz from '../components/Quiz/Quiz';
 import NurMascot from '../components/NurMascot/NurMascot';
 import { fetchVerseByKey, fetchRecitationAudio } from '../api/quranApi';
-import { useUserStore, t } from '../store/userStore';
+import { useUserStore } from '../store/userStore';
 import { useVocabCurriculum } from '../hooks/useVocabCurriculum';
 import { useRecordActivity } from '../hooks/useRecordActivity';
 import { useStreakSync } from '../hooks/useStreakSync';
@@ -15,11 +15,11 @@ import { useDailyGoalSync } from '../hooks/useDailyGoalSync';
 import { MNEMONICS } from '../utils/mnemonics';
 
 const SECTION_NAMES = {
-  1: 'Foundations',
-  2: 'Core Connectors',
-  3: 'Contextual Mastery',
-  4: 'Stories of Prophets',
-  5: 'Advanced Nuances',
+  1: 'Pondasi Utama',
+  2: 'Penghubung Utama',
+  3: 'Penguasaan Konteks',
+  4: 'Kisah Para Nabi',
+  5: 'Nuansa Lanjutan',
 };
 
 // ── Utilities ────────────────────────────────────────────────────────────────
@@ -75,12 +75,10 @@ const getVersePayload = (data) => {
 };
 
 // ── Streak Screen ────────────────────────────────────────────────────────────
-const DAYS_EN = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const DAYS_ID = ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'];
 
-const StreakScreen = ({ streak, lang, onDone }) => {
-  const todayIdx  = new Date().getDay();
-  const dayLabels = lang === 'id' ? DAYS_ID : DAYS_EN;
+const StreakScreen = ({ streak, onDone }) => {
+  const todayIdx = new Date().getDay();
 
   return (
     <motion.div
@@ -93,19 +91,17 @@ const StreakScreen = ({ streak, lang, onDone }) => {
       <div className="space-y-3">
         <div className="text-7xl font-black text-orange-500">{streak}</div>
         <div className="text-2xl font-extrabold text-slate-800">
-          {lang === 'id' ? 'hari berturut-turut! 🔥' : 'day streak! 🔥'}
+          hari berturut-turut! 🔥
         </div>
         <p className="text-slate-600 text-sm">
-          {lang === 'id'
-            ? 'Terus jaga konsistensimu — Nur selalu menemanimu!'
-            : 'Keep up the consistency — Nur is always with you!'}
+          Terus jaga konsistensimu — Nur selalu menemanimu!
         </p>
       </div>
 
       {/* Weekly tracker */}
       <div className="w-full max-w-xs bg-slate-800 rounded-3xl p-5 border border-slate-700">
         <div className="grid grid-cols-7 gap-1.5 mb-3">
-          {dayLabels.map((d, i) => (
+          {DAYS_ID.map((d, i) => (
             <div key={d} className="flex flex-col items-center gap-1.5">
               <span className={`text-xs font-bold ${i === todayIdx ? 'text-amber-400' : 'text-slate-500'}`}>{d}</span>
               <div
@@ -121,9 +117,7 @@ const StreakScreen = ({ streak, lang, onDone }) => {
           ))}
         </div>
         <p className="text-slate-400 text-xs mt-2">
-          {lang === 'id'
-            ? 'Streakmu akan hilang jika kamu melewatkan hari esok. Jaga ya! 💪'
-            : "Your streak resets if you miss tomorrow. Stay consistent! 💪"}
+          Streakmu akan hilang jika kamu melewatkan hari esok. Jaga ya! 💪
         </p>
       </div>
 
@@ -132,7 +126,7 @@ const StreakScreen = ({ streak, lang, onDone }) => {
         onClick={onDone}
         className="w-full max-w-xs py-5 bg-orange-500 text-white rounded-3xl font-extrabold text-xl shadow-2xl shadow-orange-500/30 hover:bg-orange-400 active:scale-95 transition-all"
       >
-        {lang === 'id' ? 'Aku Berkomitmen! 🔥' : "I'm Committed! 🔥"}
+        Aku Berkomitmen! 🔥
       </button>
     </motion.div>
   );
@@ -149,7 +143,6 @@ const Learn = () => {
     recordUnitCompletion,
     streak,
   } = useUserStore();
-  const lang = preferredLanguage || 'en';
 
   const { currentSessionWords, currentUnit, setView, finishUnit } = useVocabCurriculum();
   const recordActivity  = useRecordActivity();
@@ -245,16 +238,16 @@ const Learn = () => {
       section:         currentWord.section,
       arabic:          currentWord.word,
       transliteration: currentWord.transliteration || '',
-      translation:     currentWord.translation?.[preferredLanguage] || currentWord.translation?.en || '',
+      translation:     currentWord.translation?.[preferredLanguage] || currentWord.translation?.id || currentWord.translation?.en || '',
       verseArabic:     verseArabic,
       verseTranslation: verseTranslation,
       surahName:       `Surah ${surahNumber}`,
       ayahNumber:      Number(ayahNumber || 0),
       audioUrl,
-      audioError:      audioError ? t(lang, 'audio_error') : null,
+      audioError:      audioError ? 'Audio tidak tersedia' : null,
       mnemonic:        MNEMONICS[currentWord.rank] || null,
     };
-  }, [currentWord, preferredLanguage, verse, audioData, audioError, lang]);
+  }, [currentWord, preferredLanguage, verse, audioData, audioError]);
 
   // Quiz words — use language-correct translation field
   const quizWords = useUserStore(state => state.currentQuizWords);
@@ -311,7 +304,7 @@ const Learn = () => {
     }
   };
 
-  // Called by Quiz's "Continue" button (after results screen)
+  // Called by Quiz's "Lanjut" button (after results screen)
   const handleQuizContinue = () => {
     setPhase('streak');
   };
@@ -321,19 +314,19 @@ const Learn = () => {
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center p-8 text-center">
         <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-8 max-w-md w-full">
-          <div className="text-2xl font-extrabold text-slate-800">{t(lang, 'noActiveUnit')}</div>
+          <div className="text-2xl font-extrabold text-slate-800">Tidak ada unit aktif.</div>
           <button
             onClick={() => setView('home')}
             className="mt-6 w-full py-4 bg-emerald-600 text-white rounded-2xl font-bold hover:bg-emerald-700"
           >
-            {t(lang, 'back')}
+            Kembali
           </button>
         </div>
       </div>
     );
   }
 
-  const sectionName = SECTION_NAMES[currentUnit.section] || `Section ${currentUnit.section}`;
+  const sectionName = SECTION_NAMES[currentUnit.section] || `Bagian ${currentUnit.section}`;
 
   // ── Phase: quiz ───────────────────────────────────────────────────────────
   if (phase === 'quiz') {
@@ -348,7 +341,7 @@ const Learn = () => {
             <ArrowLeft className="w-6 h-6 text-slate-600" />
           </button>
           <div className="text-sm font-bold text-slate-600 uppercase tracking-widest">
-            {t(lang, 'quiz.title')}
+            Kuis
           </div>
           <div className="w-12" />
         </div>
@@ -376,7 +369,6 @@ const Learn = () => {
     return (
       <StreakScreen
         streak={streak}
-        lang={lang}
         onDone={() => setView('home')}
       />
     );
@@ -400,7 +392,7 @@ const Learn = () => {
           <div className="text-sm font-extrabold text-slate-700">
             Unit {currentUnit.unit}
             <span className="ml-2 text-emerald-600 text-xs font-bold">
-              L{lessonIndex + 1}/{totalLessons}
+              P{lessonIndex + 1}/{totalLessons}
             </span>
           </div>
         </div>
@@ -451,7 +443,7 @@ const Learn = () => {
             <div className="w-full max-w-lg bg-white rounded-[2.5rem] shadow-2xl border-4 border-slate-50 p-10 flex flex-col items-center justify-center gap-4">
               <Loader2 className="w-10 h-10 text-emerald-500 animate-spin" />
               <div className="text-slate-500 font-bold">
-                {isVerseLoading ? t(lang, 'loading_verse') : t(lang, 'loading_audio')}
+                {isVerseLoading ? 'Memuat ayat...' : 'Memuat audio...'}
               </div>
             </div>
           ) : wordCardData ? (

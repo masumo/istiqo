@@ -56,7 +56,7 @@ const HeaderBar = ({ streak, xp }) => (
         <div className="flex items-center gap-1.5">
           <Flame className="w-5 h-5 text-orange-500 fill-orange-500" />
           <span className="text-sm font-bold text-gray-700">{streak}</span>
-          <span className="text-xs font-medium text-gray-400">Day Streak</span>
+          <span className="text-xs font-medium text-gray-400">Beruntun</span>
         </div>
         <div className="flex items-center gap-1.5">
           <Star className="w-5 h-5 text-yellow-400 fill-yellow-400" />
@@ -83,7 +83,7 @@ const SectionBanner = ({ title, subtitle, color }) => (
     <div className="absolute inset-0 opacity-10"
       style={{ background: 'radial-gradient(circle at 80% 20%, #fff 0%, transparent 60%)' }} />
     <div className="relative z-10">
-      <div className="text-[10px] font-bold uppercase tracking-widest text-white/60 mb-1">Section 1 of 5</div>
+      <div className="text-[10px] font-bold uppercase tracking-widest text-white/60 mb-1">Bagian 1 dari 5</div>
       <h2 className="text-xl font-black text-white mb-0.5">{title}</h2>
       <p className="text-xs text-white/70 font-medium">{subtitle}</p>
     </div>
@@ -114,7 +114,7 @@ const UnitCircle = ({ unitNum, isLocked, isCompleted, pct, isNext, onStart }) =>
 
   return (
     <div className="flex flex-col items-center" style={{ position: 'relative' }}>
-      {/* "Start" callout above next unit */}
+      {/* "Mulai" callout above next unit */}
       {isNext && (
         <motion.div
           initial={{ opacity: 0, y: -6 }}
@@ -125,7 +125,7 @@ const UnitCircle = ({ unitNum, isLocked, isCompleted, pct, isNext, onStart }) =>
             className="px-4 py-1.5 rounded-full font-black text-xs text-white shadow-lg"
             style={{ backgroundColor: C.green }}
           >
-            Start →
+            Mulai →
           </div>
           <div className="w-2.5 h-2.5 -mt-1.5 rotate-45"
             style={{ backgroundColor: C.green }} />
@@ -181,16 +181,16 @@ const UnitCircle = ({ unitNum, isLocked, isCompleted, pct, isNext, onStart }) =>
         {isLocked && (
           <div className="flex items-center justify-center gap-0.5 mt-0.5">
             <Lock className="w-2.5 h-2.5 text-gray-400" />
-            <span className="text-[9px] text-gray-400 font-medium">Complete previous unit</span>
+            <span className="text-[9px] text-gray-400 font-medium">Selesaikan unit sebelumnya</span>
           </div>
         )}
         {isCompleted && (
           <div className="text-[9px] font-black mt-0.5" style={{ color: C.doneBorder }}>
-            Complete ✓
+            Selesai ✓
           </div>
         )}
         {!isLocked && !isCompleted && (
-          <div className="text-[9px] text-gray-400 mt-0.5 font-medium">{pct}% done</div>
+          <div className="text-[9px] text-gray-400 mt-0.5 font-medium">{pct}% selesai</div>
         )}
       </div>
     </div>
@@ -332,9 +332,9 @@ const Home = () => {
 
         {/* Unit count summary */}
         <div className="flex items-center justify-between mb-6 px-1">
-          <span className="text-xs font-bold text-gray-400 uppercase tracking-widest">Your Journey</span>
+          <span className="text-xs font-bold text-gray-400 uppercase tracking-widest">Perjalananmu</span>
           <span className="text-xs font-bold" style={{ color: C.teal }}>
-            {units.filter((u) => getUnitStatus(u).isCompleted).length}/{units.length} Units
+            {units.filter((u) => getUnitStatus(u).isCompleted).length}/{units.length} Unit
           </span>
         </div>
 
@@ -358,11 +358,11 @@ const Home = () => {
                 <Lock className="w-5 h-5 text-gray-400" />
               </div>
               <div>
-                <div className="text-sm font-bold text-gray-400">Section 2</div>
-                <div className="text-xs text-gray-300">The Core Connectors</div>
+                <div className="text-sm font-bold text-gray-400">Bagian 2</div>
+                <div className="text-xs text-gray-300">Penghubung Utama</div>
               </div>
             </div>
-            <span className="text-xs font-medium text-gray-300">Locked</span>
+            <span className="text-xs font-medium text-gray-300">Terkunci</span>
           </div>
         </motion.div>
       </main>

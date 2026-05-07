@@ -20,14 +20,14 @@ const Step1Language = ({ onNext }) => {
           className="p-8 bg-white rounded-2xl border-4 border-slate-200 hover:border-emerald-500 hover:bg-emerald-50 transition-all flex flex-col items-center space-y-4 shadow-sm"
         >
           <span className="text-6xl">🇮🇩</span>
-          <span className="text-xl font-bold">{t('languages.indonesian')}</span>
+          <span className="text-xl font-bold">Bahasa Indonesia</span>
         </button>
         <button
           onClick={() => handleSelect('en')}
           className="p-8 bg-white rounded-2xl border-4 border-slate-200 hover:border-emerald-500 hover:bg-emerald-50 transition-all flex flex-col items-center space-y-4 shadow-sm"
         >
           <span className="text-6xl">🇬🇧</span>
-          <span className="text-xl font-bold">{t('languages.english')}</span>
+          <span className="text-xl font-bold">English</span>
         </button>
       </div>
     </div>
