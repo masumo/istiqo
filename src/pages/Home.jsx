@@ -1,7 +1,14 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Flame, Star, Lock, Check } from 'lucide-react';
-import { useUserStore, buildLessons, SECTIONS_DATA, getUnitsForSection, getUnitKey } from '../store/userStore';
+import { Flame, Star, Lock, Check, Settings } from 'lucide-react';
+import {
+  useUserStore,
+  buildLessons,
+  SECTIONS_DATA,
+  getUnitsForSection,
+  getUnitKey,
+  getUIString,
+} from '../store/userStore';
 import { VOCAB_WORDS } from '../utils/wordFrequency';
 import { useVocabStore } from '../store/vocabStore';
 
@@ -27,9 +34,7 @@ const ProgressRing = ({ pct = 0, size = 80, stroke = 6 }) => {
   const offset = circ - (pct / 100) * circ;
   return (
     <svg width={size} height={size} style={{ position: 'absolute', top: 0, left: 0, pointerEvents: 'none' }}>
-      {/* Track */}
       <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke={C.ringTrack} strokeWidth={stroke} />
-      {/* Progress */}
       <circle
         cx={size / 2}
         cy={size / 2}
@@ -48,34 +53,34 @@ const ProgressRing = ({ pct = 0, size = 80, stroke = 6 }) => {
 };
 
 // ─── Header ───────────────────────────────────────────────────────────────────
-const HeaderBar = ({ streak, xp }) => (
-  <div className="sticky top-0 z-40 bg-white border-b-2 border-gray-100 shadow-sm">
-    <div className="max-w-md mx-auto px-4 py-3 flex items-center justify-between">
-      <h1 className="text-xl font-bold tracking-tight" style={{ color: C.teal }}>Istiqo</h1>
-      <div className="flex items-center gap-5">
-        <div className="flex items-center gap-1.5">
-          <Flame className="w-5 h-5 text-orange-500 fill-orange-500" />
-          <span className="text-sm font-bold text-gray-700">{streak}</span>
-          <span className="text-xs font-medium text-gray-400">Beruntun</span>
+const HeaderBar = ({ streak, xp, lang }) => {
+  const s = (k) => getUIString(lang, k);
+  return (
+    <div className="sticky top-0 z-40 bg-white border-b-2 border-gray-100 shadow-sm">
+      <div className="max-w-md mx-auto px-4 py-3 flex items-center justify-between">
+        <h1 className="text-xl font-bold tracking-tight" style={{ color: C.teal }}>Istiqo</h1>
+        <div className="flex items-center gap-5">
+          <div className="flex items-center gap-1.5">
+            <Flame className="w-5 h-5 text-orange-500 fill-orange-500" />
+            <span className="text-sm font-bold text-gray-700">{streak}</span>
+            <span className="text-xs font-medium text-gray-400">{s('streakLabel')}</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <Star className="w-5 h-5 text-yellow-400 fill-yellow-400" />
+            <span className="text-sm font-bold text-gray-700">{xp}</span>
+            <span className="text-xs font-medium text-gray-400">{s('xpLabel')}</span>
+          </div>
+          <button className="w-8 h-8 flex items-center justify-center rounded-xl hover:bg-gray-100 transition-colors">
+            <Settings className="w-5 h-5 text-gray-500" />
+          </button>
         </div>
-        <div className="flex items-center gap-1.5">
-          <Star className="w-5 h-5 text-yellow-400 fill-yellow-400" />
-          <span className="text-sm font-bold text-gray-700">{xp}</span>
-          <span className="text-xs font-medium text-gray-400">XP</span>
-        </div>
-        <button className="w-8 h-8 flex items-center justify-center rounded-xl hover:bg-gray-100 transition-colors">
-          <svg className="w-5 h-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-          </svg>
-        </button>
       </div>
     </div>
-  </div>
-);
+  );
+};
 
 // ─── Section Banner ───────────────────────────────────────────────────────────
-const SectionBanner = ({ title, subtitle, color }) => (
+const SectionBanner = ({ title, subtitle, color, sectionLabel }) => (
   <div
     className="w-full rounded-2xl p-6 mb-4 flex flex-col justify-end min-h-[120px] relative overflow-hidden border-2 border-b-[6px]"
     style={{ backgroundColor: color, borderColor: '#2A4B63' }}
@@ -83,7 +88,7 @@ const SectionBanner = ({ title, subtitle, color }) => (
     <div className="absolute inset-0 opacity-10"
       style={{ background: 'radial-gradient(circle at 80% 20%, #fff 0%, transparent 60%)' }} />
     <div className="relative z-10">
-      <div className="text-[10px] font-bold uppercase tracking-widest text-white/60 mb-1">Bagian 1 dari 5</div>
+      <div className="text-[10px] font-bold uppercase tracking-widest text-white/60 mb-1">{sectionLabel}</div>
       <h2 className="text-xl font-black text-white mb-0.5">{title}</h2>
       <p className="text-xs text-white/70 font-medium">{subtitle}</p>
     </div>
@@ -91,12 +96,11 @@ const SectionBanner = ({ title, subtitle, color }) => (
 );
 
 // ─── Zig-Zag path constants ───────────────────────────────────────────────────
-const RING_SIZE = 84;   // outer ring SVG size
-const BUBBLE_SIZE = 64; // inner circle button
+const RING_SIZE = 84;
+const BUBBLE_SIZE = 64;
 const RING_STROKE = 7;
-const ROW_H = 130;      // vertical gap between circles
+const ROW_H = 130;
 
-// Zig-Zag X offset per index: 0, +56, 0, -56, +56, …
 const zigX = (idx) => {
   const cycle = idx % 4;
   if (cycle === 0) return 0;
@@ -105,8 +109,9 @@ const zigX = (idx) => {
   return -56;
 };
 
-// ─── Unit Circle (single node on the path) ───────────────────────────────────
-const UnitCircle = ({ unitNum, isLocked, isCompleted, pct, isNext, onStart }) => {
+// ─── Unit Circle ─────────────────────────────────────────────────────────────
+const UnitCircle = ({ unitNum, isLocked, isCompleted, pct, isNext, onStart, lang }) => {
+  const s = (k) => getUIString(lang, k);
   const ringOffset = (RING_SIZE - BUBBLE_SIZE) / 2;
   const bubbleBg = isCompleted ? C.doneGreen : isLocked ? C.lockedGray : C.teal;
   const bubbleBorder = isCompleted ? C.doneBorder : isLocked ? C.lockedBorder : C.tealDark;
@@ -114,7 +119,6 @@ const UnitCircle = ({ unitNum, isLocked, isCompleted, pct, isNext, onStart }) =>
 
   return (
     <div className="flex flex-col items-center" style={{ position: 'relative' }}>
-      {/* "Mulai" callout above next unit */}
       {isNext && (
         <motion.div
           initial={{ opacity: 0, y: -6 }}
@@ -125,19 +129,14 @@ const UnitCircle = ({ unitNum, isLocked, isCompleted, pct, isNext, onStart }) =>
             className="px-4 py-1.5 rounded-full font-black text-xs text-white shadow-lg"
             style={{ backgroundColor: C.green }}
           >
-            Mulai →
+            {s('start')} →
           </div>
-          <div className="w-2.5 h-2.5 -mt-1.5 rotate-45"
-            style={{ backgroundColor: C.green }} />
+          <div className="w-2.5 h-2.5 -mt-1.5 rotate-45" style={{ backgroundColor: C.green }} />
         </motion.div>
       )}
 
-      {/* Ring + Bubble wrapper */}
       <div style={{ position: 'relative', width: RING_SIZE, height: RING_SIZE }}>
-        {/* SVG Progress Ring */}
         <ProgressRing pct={pct} size={RING_SIZE} stroke={RING_STROKE} />
-
-        {/* Inner Bubble Button */}
         <button
           onClick={canClick ? onStart : undefined}
           disabled={!canClick}
@@ -170,40 +169,38 @@ const UnitCircle = ({ unitNum, isLocked, isCompleted, pct, isNext, onStart }) =>
         </button>
       </div>
 
-      {/* Unit label */}
       <div className="mt-2 text-center">
         <div
           className="text-xs font-bold"
           style={{ color: isLocked ? C.lockedBorder : isCompleted ? C.doneBorder : C.teal }}
         >
-          Unit {unitNum}
+          {s('unit')} {unitNum}
         </div>
         {isLocked && (
           <div className="flex items-center justify-center gap-0.5 mt-0.5">
             <Lock className="w-2.5 h-2.5 text-gray-400" />
-            <span className="text-[9px] text-gray-400 font-medium">Selesaikan unit sebelumnya</span>
+            <span className="text-[9px] text-gray-400 font-medium">{s('finishPrev')}</span>
           </div>
         )}
         {isCompleted && (
           <div className="text-[9px] font-black mt-0.5" style={{ color: C.doneBorder }}>
-            Selesai ✓
+            {s('done')}
           </div>
         )}
         {!isLocked && !isCompleted && (
-          <div className="text-[9px] text-gray-400 mt-0.5 font-medium">{pct}% selesai</div>
+          <div className="text-[9px] text-gray-400 mt-0.5 font-medium">{s('pctDone')(pct)}</div>
         )}
       </div>
     </div>
   );
 };
 
-// ─── Journey Path (zig-zag of unit circles) ───────────────────────────────────
-const JourneyPath = ({ units, getUnitStatus, onUnitStart }) => {
+// ─── Journey Path ─────────────────────────────────────────────────────────────
+const JourneyPath = ({ units, getUnitStatus, onUnitStart, lang }) => {
   const count = units.length;
   const svgH = count * ROW_H + RING_SIZE + 60;
-  const centerX = 160; // half of max-w-md ~= 320px half
+  const centerX = 160;
 
-  // Pre-calc positions
   const positions = units.map((_, i) => ({
     cx: centerX + zigX(i),
     cy: i * ROW_H + RING_SIZE / 2,
@@ -211,7 +208,6 @@ const JourneyPath = ({ units, getUnitStatus, onUnitStart }) => {
 
   return (
     <div className="relative w-full" style={{ height: svgH }}>
-      {/* SVG connecting lines */}
       <svg
         className="absolute inset-0 w-full pointer-events-none"
         style={{ height: svgH }}
@@ -235,7 +231,6 @@ const JourneyPath = ({ units, getUnitStatus, onUnitStart }) => {
         })}
       </svg>
 
-      {/* Unit circles */}
       {units.map((unitNum, idx) => {
         const { isLocked, isCompleted, completedCount, totalLessons } = getUnitStatus(unitNum);
         const pct = totalLessons > 0 ? Math.round((completedCount / totalLessons) * 100) : 0;
@@ -260,6 +255,7 @@ const JourneyPath = ({ units, getUnitStatus, onUnitStart }) => {
               pct={pct}
               isNext={isNext}
               onStart={() => onUnitStart(unitNum)}
+              lang={lang}
             />
           </motion.div>
         );
@@ -270,12 +266,17 @@ const JourneyPath = ({ units, getUnitStatus, onUnitStart }) => {
 
 // ─── Main Home ────────────────────────────────────────────────────────────────
 const Home = () => {
-  const { streak, xp, lessonProgress } = useUserStore();
-  const setView = useVocabStore((s) => s.setView);
-  const startUnit = useVocabStore((s) => s.startUnit);
-  const setCurrentQuizWords = useUserStore((s) => s.setCurrentQuizWords);
+  const { streak, xp, lessonProgress, preferredLanguage } = useUserStore();
+  const lang = preferredLanguage || 'id';
+  const s = (k) => getUIString(lang, k);
+
+  const setView = useVocabStore((st) => st.setView);
+  const startUnit = useVocabStore((st) => st.startUnit);
+  const setCurrentQuizWords = useUserStore((st) => st.setCurrentQuizWords);
 
   const section = SECTIONS_DATA[0];
+  const sectionTitle = section.title?.[lang] ?? section.title?.id;
+  const sectionSubtitle = section.subtitle?.[lang] ?? section.subtitle?.id;
   const units = getUnitsForSection(1).map(({ unit }) => unit);
 
   const getUnitStatus = (unitNum) => {
@@ -319,22 +320,30 @@ const Home = () => {
     });
   };
 
+  const completedUnits = units.filter((u) => getUnitStatus(u).isCompleted).length;
+  const sectionLabel = lang === 'en'
+    ? `Section 1 of 5`
+    : `Bagian 1 dari 5`;
+
   return (
     <div className="min-h-screen" style={{ backgroundColor: C.bg }}>
-      <HeaderBar streak={streak} xp={xp} />
+      <HeaderBar streak={streak} xp={xp} lang={lang} />
 
       <main className="max-w-md mx-auto px-4 py-6">
         <SectionBanner
-          title={section.title}
-          subtitle={section.subtitle}
+          title={sectionTitle}
+          subtitle={sectionSubtitle}
           color={section.themeColor}
+          sectionLabel={sectionLabel}
         />
 
-        {/* Unit count summary */}
+        {/* Journey summary */}
         <div className="flex items-center justify-between mb-6 px-1">
-          <span className="text-xs font-bold text-gray-400 uppercase tracking-widest">Perjalananmu</span>
+          <span className="text-xs font-bold text-gray-400 uppercase tracking-widest">
+            {s('yourJourney')}
+          </span>
           <span className="text-xs font-bold" style={{ color: C.teal }}>
-            {units.filter((u) => getUnitStatus(u).isCompleted).length}/{units.length} Unit
+            {completedUnits}/{units.length} {s('units')}
           </span>
         </div>
 
@@ -343,6 +352,7 @@ const Home = () => {
           units={units}
           getUnitStatus={getUnitStatus}
           onUnitStart={handleUnitStart}
+          lang={lang}
         />
 
         {/* Section 2 Locked Teaser */}
@@ -358,11 +368,11 @@ const Home = () => {
                 <Lock className="w-5 h-5 text-gray-400" />
               </div>
               <div>
-                <div className="text-sm font-bold text-gray-400">Bagian 2</div>
-                <div className="text-xs text-gray-300">Penghubung Utama</div>
+                <div className="text-sm font-bold text-gray-400">{s('section2')}</div>
+                <div className="text-xs text-gray-300">{s('section2Sub')}</div>
               </div>
             </div>
-            <span className="text-xs font-medium text-gray-300">Terkunci</span>
+            <span className="text-xs font-medium text-gray-300">{s('locked')}</span>
           </div>
         </motion.div>
       </main>
