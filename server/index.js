@@ -67,9 +67,10 @@ app.get('/api/health', (_req, res) => {
   });
 });
 
-// ── Production: serve Vite build ───────────────────────────────────────────────
-const distPath = join(__dirname, '..', 'dist');
-if (process.env.NODE_ENV === 'production' && existsSync(distPath)) {
+// ── Production: serve Vite build (Skip on Vercel) ───────────────────────────────
+// On Vercel, the frontend is served as static files from the CDN.
+// This logic is only needed for local production testing or other platforms.
+if (process.env.NODE_ENV === 'production' && existsSync(distPath) && !process.env.VERCEL) {
   app.use(express.static(distPath));
   // SPA fallback: all non-/api routes → index.html
   app.get('*', (req, res) => {
@@ -79,17 +80,23 @@ if (process.env.NODE_ENV === 'production' && existsSync(distPath)) {
   });
 }
 
-// ── Start ──────────────────────────────────────────────────────────────────────
-app.listen(PORT, () => {
-  const qfEnv = process.env.QF_ENV ?? 'prelive';
-  const AUTH_BASE    = { prelive: 'https://prelive-oauth2.quran.foundation', production: 'https://oauth2.quran.foundation' };
-  const CONTENT_BASE = { prelive: 'https://apis-prelive.quran.foundation',   production: 'https://apis.quran.foundation' };
+// ── Export for Vercel ─────────────────────────────────────────────────────────
+export default app;
 
-  console.log(`\n🕌  Istiqo API Server`);
-  console.log(`   ├─ Running at:   http://localhost:${PORT}`);
-  console.log(`   ├─ QF_ENV:       ${qfEnv}`);
-  console.log(`   ├─ Auth URL:     ${AUTH_BASE[qfEnv] ?? '(invalid QF_ENV)'}`);
-  console.log(`   ├─ Content URL:  ${CONTENT_BASE[qfEnv] ?? '(invalid QF_ENV)'}`);
-  console.log(`   ├─ Client ID:    ${process.env.QF_CLIENT_ID    ? '✓ set' : '✗ MISSING'}`);
-  console.log(`   └─ Client Secret: ${process.env.QF_CLIENT_SECRET ? '✓ set' : '✗ MISSING'}\n`);
-});
+// ── Start (Only if running locally) ──────────────────────────────────────────
+// Vercel handles the serverless execution, so we don't call .listen() there.
+if (process.env.NODE_ENV !== 'production' || process.env.RUN_LOCAL === 'true') {
+  app.listen(PORT, () => {
+    const qfEnv = process.env.QF_ENV ?? 'prelive';
+    const AUTH_BASE    = { prelive: 'https://prelive-oauth2.quran.foundation', production: 'https://oauth2.quran.foundation' };
+    const CONTENT_BASE = { prelive: 'https://apis-prelive.quran.foundation',   production: 'https://apis.quran.foundation' };
+
+    console.log(`\n🕌  Istiqo API Server`);
+    console.log(`   ├─ Running at:   http://localhost:${PORT}`);
+    console.log(`   ├─ QF_ENV:       ${qfEnv}`);
+    console.log(`   ├─ Auth URL:     ${AUTH_BASE[qfEnv] ?? '(invalid QF_ENV)'}`);
+    console.log(`   ├─ Content URL:  ${CONTENT_BASE[qfEnv] ?? '(invalid QF_ENV)'}`);
+    console.log(`   ├─ Client ID:    ${process.env.QF_CLIENT_ID    ? '✓ set' : '✗ MISSING'}`);
+    console.log(`   └─ Client Secret: ${process.env.QF_CLIENT_SECRET ? '✓ set' : '✗ MISSING'}\n`);
+  });
+}
