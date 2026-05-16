@@ -36,7 +36,7 @@ const LoginScreen = () => {
     >
       <div className="w-full max-w-sm flex flex-col items-center space-y-8 bg-white p-8 rounded-3xl shadow-xl border-b-[6px] border-slate-200">
         
-        <NurMascot mood="streak" size={150} />
+        <NurMascot animateType="floating" size={150} />
         
         <div className="space-y-2">
           <h1 className="text-3xl font-black text-slate-800">Istiqo</h1>

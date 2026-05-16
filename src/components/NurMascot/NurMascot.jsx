@@ -1,69 +1,74 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 
-/**
- * NurMascot — maskot bintang kecil "Nur" (نور = cahaya)
- *
- * mood:
- *   'reading'   — sebelum quiz, di atas Quran terbuka
- *   'celebrate' — setelah unit selesai, confetti
- *   'streak'    — saat streak baru, megang obor
- *
- * Floating bob animation bawaan (Baby Schema = menggemaskan & menarik perhatian)
- */
-const NUR_IMAGES = {
-  reading:   '/mascot/nur_reading.webp',
-  celebrate: '/mascot/nur_celebrate.webp',
-  streak:    '/mascot/nur_streak.webp',
-};
+const NurMascot = ({ 
+  mood = 'splash', 
+  size = 200, 
+  animateType = 'floating', // 'floating' | 'breathing' | 'thinking' | 'spring'
+  className = ''
+}) => {
 
-// Ambient sparkle dots around Nur
-const Sparkle = ({ style }) => (
-  <motion.div
-    className="absolute w-2 h-2 rounded-full bg-amber-300"
-    style={style}
-    animate={{ scale: [0, 1.4, 0], opacity: [0, 1, 0] }}
-    transition={{ repeat: Infinity, duration: 1.8 + Math.random() * 1.2, delay: Math.random() * 1.5 }}
-  />
-);
+  // Animasi Floating: Gentle floating/bobbing
+  const floatingAnim = {
+    y: [0, -10, 0],
+    transition: { repeat: Infinity, duration: 3, ease: "easeInOut" }
+  };
 
-const SPARKLE_POSITIONS = [
-  { top: '10%', left: '5%' },
-  { top: '0%', right: '15%' },
-  { bottom: '20%', left: '2%' },
-  { bottom: '10%', right: '5%' },
-  { top: '30%', right: '0%' },
-];
+  // Animasi Breathing: Idle breathing (slight scaling)
+  const breathingAnim = {
+    scale: [1, 1.05, 1],
+    transition: { repeat: Infinity, duration: 4, ease: "easeInOut" }
+  };
 
-const NurMascot = ({ mood = 'celebrate', size = 200, sparkles = true }) => {
-  const src = NUR_IMAGES[mood] || NUR_IMAGES.celebrate;
+  // Animasi Thinking: Pulse effect / glowing aura
+  const thinkingAnim = {
+    scale: [1, 1.1, 1],
+    opacity: [0.8, 1, 0.8],
+    rotate: [0, 5, -5, 0],
+    transition: { repeat: Infinity, duration: 2, ease: "easeInOut" }
+  };
+
+  // Animasi Spring: Scale-Up Spring Impact
+  const springAnim = {
+    scale: 1,
+    rotate: 0,
+    transition: { type: "spring", stiffness: 260, damping: 20 }
+  };
+
+  let animProps = floatingAnim;
+  let initialProps = false;
+  
+  if (animateType === 'breathing') {
+    animProps = breathingAnim;
+  } else if (animateType === 'thinking') {
+    animProps = thinkingAnim;
+  } else if (animateType === 'spring') {
+    animProps = springAnim;
+    initialProps = { scale: 0, rotate: -10 };
+  }
 
   return (
-    <div className="relative inline-flex items-center justify-center" style={{ width: size, height: size }}>
-      {/* Ambient sparkles */}
-      {sparkles && SPARKLE_POSITIONS.map((pos, i) => (
-        <Sparkle key={i} style={pos} />
-      ))}
-
-      {/* Glow halo behind mascot */}
-      <div
-        className="absolute inset-0 rounded-full bg-amber-200/40 blur-xl"
-        style={{ transform: 'scale(0.85)' }}
+    <motion.div 
+      className={`relative overflow-hidden flex items-center justify-center bg-[#F6F3E6] rounded-full shadow-lg ${className}`} 
+      style={{ 
+        width: size, 
+        height: size,
+      }}
+      initial={initialProps}
+      animate={animProps}
+    >
+      {/* 
+        SMART CSS CLIPPING
+        Using the master image /nur-master.jpg.
+        Scale up and center it so the bottom text is clipped by the overflow-hidden rounded container.
+      */}
+      <img 
+        src="/nur-master.jpg" 
+        alt="Nur Mascot" 
+        className="w-full h-full object-cover object-center scale-[1.3]"
+        style={{ pointerEvents: 'none' }}
       />
-
-      {/* Nur floating bob */}
-      <motion.img
-        src={src}
-        alt="Nur the mascot"
-        style={{ width: size, height: size, objectFit: 'contain', position: 'relative', zIndex: 1 }}
-        animate={{ y: [0, -10, 0] }}
-        transition={{ repeat: Infinity, duration: 2.4, ease: 'easeInOut' }}
-        drag
-        dragConstraints={{ left: 0, right: 0, top: 0, bottom: 0 }}
-        whileTap={{ scale: 0.9 }}
-        whileHover={{ scale: 1.05 }}
-      />
-    </div>
+    </motion.div>
   );
 };
 

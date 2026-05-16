@@ -1,6 +1,7 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Flame, Star, Lock, Check, Settings } from 'lucide-react';
+import { Flame, Star, Lock, Check, Settings, Volume2, VolumeX } from 'lucide-react';
+import NurMascot from '../components/NurMascot/NurMascot';
 import {
   useUserStore,
   buildLessons,
@@ -53,7 +54,7 @@ const ProgressRing = ({ pct = 0, size = 80, stroke = 6 }) => {
 };
 
 // ─── Header ───────────────────────────────────────────────────────────────────
-const HeaderBar = ({ streak, xp, lang }) => {
+const HeaderBar = ({ streak, xp, lang, isAudioMuted, onToggleAudio }) => {
   const s = (k) => getUIString(lang, k);
   return (
     <div className="sticky top-0 z-40 bg-white border-b-2 border-gray-100 shadow-sm">
@@ -70,6 +71,9 @@ const HeaderBar = ({ streak, xp, lang }) => {
             <span className="text-sm font-bold text-gray-700">{xp}</span>
             <span className="text-xs font-medium text-gray-400">{s('xpLabel')}</span>
           </div>
+          <button onClick={onToggleAudio} className="w-8 h-8 flex items-center justify-center rounded-xl hover:bg-gray-100 transition-colors">
+            {isAudioMuted ? <VolumeX className="w-5 h-5 text-gray-500" /> : <Volume2 className="w-5 h-5 text-gray-500" />}
+          </button>
           <button className="w-8 h-8 flex items-center justify-center rounded-xl hover:bg-gray-100 transition-colors">
             <Settings className="w-5 h-5 text-gray-500" />
           </button>
@@ -266,7 +270,7 @@ const JourneyPath = ({ units, getUnitStatus, onUnitStart, lang }) => {
 
 // ─── Main Home ────────────────────────────────────────────────────────────────
 const Home = () => {
-  const { streak, xp, lessonProgress, preferredLanguage } = useUserStore();
+  const { streak, xp, lessonProgress, preferredLanguage, isAudioMuted, toggleAudio } = useUserStore();
   const lang = preferredLanguage || 'id';
   const s = (k) => getUIString(lang, k);
 
@@ -327,15 +331,17 @@ const Home = () => {
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: C.bg }}>
-      <HeaderBar streak={streak} xp={xp} lang={lang} />
+      <HeaderBar streak={streak} xp={xp} lang={lang} isAudioMuted={isAudioMuted} onToggleAudio={toggleAudio} />
 
       <main className="max-w-md mx-auto px-4 py-6">
-        <SectionBanner
-          title={sectionTitle}
-          subtitle={sectionSubtitle}
-          color={section.themeColor}
-          sectionLabel={sectionLabel}
-        />
+        <div className="relative pt-6">
+          <SectionBanner
+            title={sectionTitle}
+            subtitle={sectionSubtitle}
+            color={section.themeColor}
+            sectionLabel={sectionLabel}
+          />
+        </div>
 
         {/* Journey summary */}
         <div className="flex items-center justify-between mb-6 px-1">

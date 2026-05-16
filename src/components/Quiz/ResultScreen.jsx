@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import confetti from 'canvas-confetti';
 import { getTranslation } from '../../utils/i18n';
 import { getUIString } from '../../store/userStore';
+import NurMascot from '../NurMascot/NurMascot';
 
 // ─── Design tokens ────────────────────────────────────────────────────────────
 const C = {
@@ -21,69 +22,7 @@ const formatMMSS = (secs) => {
   return `${m}:${s}`;
 };
 
-// ─── Nur SVG Mascot (celebrate / happy mood) ──────────────────────────────────
-const NurSVGHappy = ({ size = 180 }) => (
-  <motion.svg
-    width={size}
-    height={size}
-    viewBox="0 0 200 200"
-    fill="none"
-    xmlns="http://www.w3.org/2000/svg"
-    animate={{ y: [0, -12, 0] }}
-    transition={{ repeat: Infinity, duration: 2.6, ease: 'easeInOut' }}
-  >
-    {/* Glow halo */}
-    <circle cx="100" cy="108" r="62" fill="#FDE68A" opacity="0.35" />
 
-    {/* Star body — 5-point */}
-    <polygon
-      points="100,22 117,72 170,72 128,103 143,153 100,124 57,153 72,103 30,72 83,72"
-      fill="#FCD34D"
-      stroke="#F59E0B"
-      strokeWidth="4"
-      strokeLinejoin="round"
-    />
-
-    {/* Shine highlight */}
-    <ellipse cx="82" cy="62" rx="10" ry="6" fill="#FEF9C3" opacity="0.7" transform="rotate(-20,82,62)" />
-
-    {/* Eyes — happy curved lines */}
-    <path d="M84 105 Q87 98 90 105" stroke="#92400E" strokeWidth="3.5" strokeLinecap="round" fill="none" />
-    <path d="M110 105 Q113 98 116 105" stroke="#92400E" strokeWidth="3.5" strokeLinecap="round" fill="none" />
-
-    {/* Smile */}
-    <path d="M88 118 Q100 130 112 118" stroke="#92400E" strokeWidth="3.5" strokeLinecap="round" fill="none" />
-
-    {/* Rosy cheeks */}
-    <ellipse cx="81" cy="118" rx="7" ry="4" fill="#FCA5A5" opacity="0.55" />
-    <ellipse cx="119" cy="118" rx="7" ry="4" fill="#FCA5A5" opacity="0.55" />
-
-    {/* Sparkle top-left */}
-    <g transform="translate(28,30)">
-      <line x1="8" y1="0" x2="8" y2="16" stroke="#FCD34D" strokeWidth="2.5" strokeLinecap="round" />
-      <line x1="0" y1="8" x2="16" y2="8" stroke="#FCD34D" strokeWidth="2.5" strokeLinecap="round" />
-      <line x1="2" y1="2" x2="14" y2="14" stroke="#FCD34D" strokeWidth="1.5" strokeLinecap="round" />
-      <line x1="14" y1="2" x2="2" y2="14" stroke="#FCD34D" strokeWidth="1.5" strokeLinecap="round" />
-    </g>
-
-    {/* Sparkle top-right */}
-    <g transform="translate(152,18)">
-      <line x1="6" y1="0" x2="6" y2="12" stroke="#A78BFA" strokeWidth="2" strokeLinecap="round" />
-      <line x1="0" y1="6" x2="12" y2="6" stroke="#A78BFA" strokeWidth="2" strokeLinecap="round" />
-    </g>
-
-    {/* Sparkle bottom-right */}
-    <g transform="translate(158,140)">
-      <line x1="5" y1="0" x2="5" y2="10" stroke="#6EE7B7" strokeWidth="2" strokeLinecap="round" />
-      <line x1="0" y1="5" x2="10" y2="5" stroke="#6EE7B7" strokeWidth="2" strokeLinecap="round" />
-    </g>
-
-    {/* Mini stars */}
-    <circle cx="42" cy="148" r="4" fill="#FCD34D" opacity="0.8" />
-    <circle cx="165" cy="65" r="3" fill="#F9A8D4" opacity="0.9" />
-    <circle cx="30" cy="90" r="2.5" fill="#6EE7B7" opacity="0.8" />
-  </motion.svg>
-);
 
 // ─── Stat Card ────────────────────────────────────────────────────────────────
 const StatCard = ({ emoji, value, label, bgColor, borderColor, textColor }) => (
@@ -168,7 +107,7 @@ const ResultScreen = ({ score, total, xpEarned, wordsCount, durationSecs, onCont
         <div className="relative">
           {/* Ambient glow */}
           <div className="absolute inset-0 rounded-full bg-amber-200/40 blur-2xl scale-110" />
-          <NurSVGHappy size={190} />
+          <NurMascot animateType="spring" size={190} />
         </div>
 
         {/* Result title */}

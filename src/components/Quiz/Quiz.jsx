@@ -5,6 +5,7 @@ import ResultScreen from './ResultScreen';
 import StreakScreen from './StreakScreen';
 import { useUserStore, getUIString } from '../../store/userStore';
 import { getTranslation } from '../../utils/i18n';
+import { playSFX } from '../../utils/sfx';
 
 // ─── Design tokens ────────────────────────────────────────────────────────────
 const C = {
@@ -69,7 +70,7 @@ const formatMMSS = (secs) => {
 };
 
 // ─── MCQ Question ─────────────────────────────────────────────────────────────
-const MCQQuestion = ({ word, allWords, lang, onAnswer }) => {
+const MCQQuestion = ({ word, allWords, lang, onAnswer, isAudioMuted }) => {
   const options = useMemo(
     () => buildMCQOptions(allWords, word, lang),
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -83,7 +84,9 @@ const MCQQuestion = ({ word, allWords, lang, onAnswer }) => {
     if (locked) return;
     setSelected(option);
     setLocked(true);
-    onAnswer(option === correctLabel, option);
+    const isCorrect = option === correctLabel;
+    playSFX(isCorrect ? 'correct' : 'wrong', isAudioMuted);
+    onAnswer(isCorrect, option);
   };
 
   const optionStyle = (option) => {
@@ -118,7 +121,7 @@ const MCQQuestion = ({ word, allWords, lang, onAnswer }) => {
 };
 
 // ─── Matching Pairs ───────────────────────────────────────────────────────────
-const MatchingPairs = ({ words, lang, onComplete }) => {
+const MatchingPairs = ({ words, lang, onComplete, isAudioMuted }) => {
   const count = Math.min(words.length, 6);
   const pairs = useMemo(() => words.slice(0, count), [words, count]);
   const [leftItems]  = useState(() => pairs.map((w, i) => ({ id: i, text: w.word, pairId: i })));
@@ -142,12 +145,14 @@ const MatchingPairs = ({ words, lang, onComplete }) => {
     if (left.pairId === right.pairId) {
       setMatched((p) => new Set(p).add(left.pairId));
       setScore((s) => s + 1);
+      playSFX('correct', isAudioMuted);
     } else {
       setWrongLeft(left.id); setWrongRight(right.id);
+      playSFX('wrong', isAudioMuted);
       setTimeout(() => { setWrongLeft(null); setWrongRight(null); }, 650);
     }
     setSelLeft(null); setSelRight(null);
-  }, []);
+  }, [isAudioMuted]);
 
   const handleLeft  = (item) => { if (matched.has(item.pairId) || wrongLeft !== null) return; const next = selLeft?.id === item.id ? null : item; setSelLeft(next); if (next && selRight) tryMatch(next, selRight); };
   const handleRight = (item) => { if (matched.has(item.pairId) || wrongRight !== null) return; const next = selRight?.id === item.id ? null : item; setSelRight(next); if (next && selLeft) tryMatch(selLeft, next); };
@@ -237,7 +242,7 @@ const TransitionScreen = ({ lang, wordsCount, onStartQuiz }) => {
         </div>
 
         {/* Mascot */}
-        <NurMascot mood="reading" size={180} sparkles={true} />
+        <NurMascot animateType="thinking" size={180} />
 
         {/* Text */}
         <div className="text-center space-y-2">
@@ -280,7 +285,8 @@ const Quiz = ({
     clearQuizTimer,
     streak,
     hasClaimedStreakToday,
-    claimStreakToday
+    claimStreakToday,
+    isAudioMuted
   } = useUserStore();
   const activeLang = lang || preferredLanguage || 'id';
 
@@ -335,7 +341,7 @@ const Quiz = ({
   // Store latest values in refs so the finish effect never has stale captures
   // but also never re-fires due to reference churn.
   const storeRef = useRef({});
-  storeRef.current = { getQuizElapsedSecs, clearQuizTimer, completeLesson, onComplete, unitKey, lessonIndex, totalLessons, initialTotal, hasClaimedStreakToday };
+  storeRef.current = { getQuizElapsedSecs, clearQuizTimer, completeLesson, onComplete, unitKey, lessonIndex, totalLessons, initialTotal, hasClaimedStreakToday, isAudioMuted };
 
   useEffect(() => {
     if (screen !== 'quiz') return;
@@ -353,6 +359,7 @@ const Quiz = ({
     const result = complete(uk, li, tl, correctCount, it);
     setXpEarned(result?.xpEarned ?? 0);
     done(correctCount, it);
+    playSFX('success', storeRef.current.isAudioMuted);
     
     if (!checkStreak()) {
       setScreen('streak');
@@ -456,7 +463,7 @@ const Quiz = ({
                 {word?.word}
               </span>
             </div>
-            <MCQQuestion word={word} allWords={safeWords} lang={activeLang} onAnswer={handleMCQAnswer} />
+            <MCQQuestion word={word} allWords={safeWords} lang={activeLang} onAnswer={handleMCQAnswer} isAudioMuted={isAudioMuted} />
             <AnimatePresence>
               {mcqAnswered && (
                 <motion.button
@@ -490,7 +497,7 @@ const Quiz = ({
           className={`w-full bg-white ${btn3d} border-gray-200 p-6 flex flex-col items-center space-y-4`}
         >
           <div className="text-xs font-black uppercase text-slate-400 tracking-widest">{T('quiz.matchTitle')}</div>
-          <MatchingPairs words={currentQuestion.words} lang={activeLang} onComplete={handleMatchComplete} />
+          <MatchingPairs words={currentQuestion.words} lang={activeLang} onComplete={handleMatchComplete} isAudioMuted={isAudioMuted} />
         </motion.div>
       </AnimatePresence>
     </div>

@@ -29,7 +29,7 @@ const SplashScreen = ({ onComplete, duration = 2500 }) => {
             transition={{ duration: 0.6, ease: 'easeOut' }}
             className="flex flex-col items-center gap-6"
           >
-            <NurMascot mood="celebrate" size={180} sparkles={false} />
+            <NurMascot animateType="floating" size={180} />
             <motion.h1
               initial={{ y: 20, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}

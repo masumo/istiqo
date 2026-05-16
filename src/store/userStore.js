@@ -131,6 +131,9 @@ const UI = {
     transitionDesc: 'Siap untuk kuis?',
     startQuiz: 'Mulai Kuis',
     resultsDone: 'Selesai',
+    sfxToggle: 'Efek Suara',
+    sfxOn: 'Nyala',
+    sfxOff: 'Mati',
   },
   en: {
     streakLabel: 'Day Streak',
@@ -195,6 +198,9 @@ const UI = {
     transitionDesc: 'Ready for the quiz?',
     startQuiz: 'Start Quiz',
     resultsDone: 'Continue',
+    sfxToggle: 'Sound Effects',
+    sfxOn: 'On',
+    sfxOff: 'Off',
   },
 };
 
@@ -257,6 +263,7 @@ export const useUserStore = create(
       currentQuizWords: [],
       // Quiz timer: timestamp when "Start Quiz" was pressed
       quizStartTime: null,
+      isAudioMuted: false,
 
       setCurrentQuizWords: (words) => set({ currentQuizWords: words }),
       setLanguage: (lang) => set({ preferredLanguage: lang }),
@@ -265,6 +272,7 @@ export const useUserStore = create(
       completeOnboarding: () => set({ isOnboarded: true }),
       setAuthToken: (token) => set({ authToken: token }),
       setAllowUserApiCalls: (allow) => set({ allowUserApiCalls: allow }),
+      toggleAudio: () => set((state) => ({ isAudioMuted: !state.isAudioMuted })),
       
       setUser: (user) => set({ user, authStatus: 'authenticated' }),
       setGuestMode: () => set((state) => ({ 

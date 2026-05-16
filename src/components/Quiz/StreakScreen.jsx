@@ -25,7 +25,7 @@ const StreakScreen = ({ streak, onDone, lang = 'id' }) => {
       animate={{ opacity: 1, scale: 1 }}
       className="w-full max-w-lg min-h-screen bg-gradient-to-br from-orange-50 via-amber-50 to-yellow-50 flex flex-col items-center justify-center p-8 text-center space-y-8"
     >
-      <NurMascot mood="streak" size={200} />
+      <NurMascot animateType="spring" size={200} />
 
       <div className="space-y-3">
         <div className="text-7xl font-black text-orange-500">{streak}</div>
