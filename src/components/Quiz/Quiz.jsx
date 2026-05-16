@@ -1,8 +1,7 @@
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Star, Clock, BookOpen } from 'lucide-react';
-import confetti from 'canvas-confetti';
 import NurMascot from '../NurMascot/NurMascot';
+import ResultScreen from './ResultScreen';
 import { useUserStore, getUIString } from '../../store/userStore';
 import { getTranslation } from '../../utils/i18n';
 
@@ -214,14 +213,6 @@ const LessonBadge = ({ lessonIndex, totalLessons, qIdx, qTotal, lang }) => {
   );
 };
 
-// ─── Stat Card ────────────────────────────────────────────────────────────────
-const StatCard = ({ icon, value, label, accentClass='border-slate-100' }) => (
-  <div className={`flex flex-col items-center gap-1.5 rounded-2xl p-4 border-2 border-b-4 bg-white ${accentClass}`}>
-    {icon}
-    <span className="text-xl font-black text-slate-800">{value}</span>
-    <span className="text-[10px] uppercase tracking-widest font-bold text-slate-400 text-center leading-tight">{label}</span>
-  </div>
-);
 
 // ─── Transition Screen (Learning → Quiz) ─────────────────────────────────────
 const TransitionScreen = ({ lang, wordsCount, onStartQuiz }) => {
@@ -268,89 +259,7 @@ const TransitionScreen = ({ lang, wordsCount, onStartQuiz }) => {
   );
 };
 
-// ─── Quiz Results Page ─────────────────────────────────────────────────────────
-const QuizResultsPage = ({ score, total, xpEarned, wordsCount, durationSecs, onContinue, lang }) => {
-  const T  = (k) => getTranslation(lang, k);
-  const s  = (k) => getUIString(lang, k);
-  const isPerfect = score === total;
-
-  // Continuous confetti loop
-  useEffect(() => {
-    let stopped = false;
-    const fire = () => {
-      if (stopped) return;
-      confetti({
-        particleCount: isPerfect ? 80 : 40,
-        spread: 100,
-        origin: { y: 0.35, x: 0.3 + Math.random() * 0.4 },
-        colors: ['#58CC02','#FFD700','#37607D','#FF6B6B','#A78BFA'],
-      });
-      setTimeout(fire, isPerfect ? 900 : 1800);
-    };
-    const t = setTimeout(fire, 120);
-    return () => { stopped = true; clearTimeout(t); };
-  }, [isPerfect]);
-
-  return (
-    <motion.div
-      initial={{ opacity: 0, scale: 0.95 }}
-      animate={{ opacity: 1, scale: 1 }}
-      transition={{ duration: 0.4, type: 'spring', stiffness: 200 }}
-      className="w-full min-h-screen flex flex-col items-center justify-center px-4 py-10"
-      style={{ backgroundColor: C.bg }}
-    >
-      <div className="w-full max-w-sm flex flex-col items-center gap-5">
-        {/* Badge */}
-        <div
-          className="px-5 py-2 rounded-full text-sm font-black border-2 border-b-4 shadow"
-          style={{
-            backgroundColor: isPerfect ? C.doneGreen : '#FFF8E1',
-            borderColor: isPerfect ? C.doneBorder : '#D97706',
-            color: isPerfect ? C.doneBorder : '#92400E',
-          }}
-        >
-          {isPerfect ? T('quiz.results.perfectBadge') : T('quiz.results.lessonBadge')}
-        </div>
-
-        {/* Nur mascot */}
-        <NurMascot mood="celebrate" size={180} sparkles={true} />
-
-        {/* Stats 3D cards */}
-        <div className="grid grid-cols-3 gap-3 w-full">
-          <StatCard
-            icon={<BookOpen className="w-5 h-5 mb-0.5" style={{ color: C.teal }} />}
-            value={wordsCount}
-            label={T('quiz.results.wordsLearned')}
-            accentClass="border-blue-100"
-          />
-          <StatCard
-            icon={<Star className="w-5 h-5 mb-0.5 fill-amber-400 text-amber-400" />}
-            value={`+${xpEarned}`}
-            label={T('quiz.results.xpEarned')}
-            accentClass="border-amber-100"
-          />
-          <StatCard
-            icon={<Clock className="w-5 h-5 mb-0.5" style={{ color: C.doneBorder }} />}
-            value={formatMMSS(durationSecs)}
-            label={T('quiz.results.duration')}
-            accentClass="border-green-100"
-          />
-        </div>
-
-        {/* CTA */}
-        <motion.button
-          onClick={onContinue}
-          whileHover={{ scale: 1.03 }}
-          whileTap={{ scale: 0.97 }}
-          className={`w-full py-4 font-black text-xl text-white ${btn3d} border-b-[6px] mt-2`}
-          style={{ backgroundColor: C.green, borderColor: C.greenDark }}
-        >
-          {s('resultsDone')} →
-        </motion.button>
-      </div>
-    </motion.div>
-  );
-};
+// QuizResultsPage is now ResultScreen — imported above
 
 // ─── Quiz (main export) ───────────────────────────────────────────────────────
 const Quiz = ({
@@ -381,6 +290,9 @@ const Quiz = ({
   const [xpEarned,     setXpEarned]     = useState(0);
   const [durationSecs, setDurationSecs] = useState(0);
 
+  // Guard: ensure finishQuiz runs at most once per quiz session
+  const finishedRef = useRef(false);
+
   // Reset when words change
   useEffect(() => {
     const q = buildQuestionQueue(safeWords);
@@ -389,6 +301,7 @@ const Quiz = ({
     setMcqAnswered(null);
     setCorrectCount(0);
     setScreen('transition');
+    finishedRef.current = false; // reset guard for new session
   }, [safeWords]);
 
   const handleStartQuiz = () => {
@@ -409,21 +322,30 @@ const Quiz = ({
     setMcqAnswered(null);
   }, []);
 
-  const finishQuiz = useCallback((finalCorrect) => {
-    const elapsed = getQuizElapsedSecs();
-    clearQuizTimer();
-    setDurationSecs(elapsed);
-    const result = completeLesson(unitKey, lessonIndex, totalLessons, finalCorrect, initialTotal);
-    setXpEarned(result?.xpEarned ?? 0);
-    onComplete(finalCorrect, initialTotal);
-    setScreen('results');
-  }, [completeLesson, unitKey, lessonIndex, totalLessons, initialTotal, onComplete, getQuizElapsedSecs, clearQuizTimer]);
+  // Store latest values in refs so the finish effect never has stale captures
+  // but also never re-fires due to reference churn.
+  const storeRef = useRef({});
+  storeRef.current = { getQuizElapsedSecs, clearQuizTimer, completeLesson, onComplete, unitKey, lessonIndex, totalLessons, initialTotal };
 
   useEffect(() => {
-    if (screen === 'quiz' && workingQueue.length > 0 && qIdx >= workingQueue.length) {
-      finishQuiz(correctCount);
-    }
-  }, [qIdx, workingQueue.length, screen, correctCount, finishQuiz]);
+    if (screen !== 'quiz') return;
+    if (workingQueue.length === 0) return;
+    if (qIdx < workingQueue.length) return;
+    if (finishedRef.current) return; // already finished — do not re-run
+    finishedRef.current = true;
+
+    const { getQuizElapsedSecs: elapsed, clearQuizTimer: clearTimer, completeLesson: complete,
+            onComplete: done, unitKey: uk, lessonIndex: li, totalLessons: tl, initialTotal: it } = storeRef.current;
+
+    const secs = elapsed();
+    clearTimer();
+    setDurationSecs(secs);
+    const result = complete(uk, li, tl, correctCount, it);
+    setXpEarned(result?.xpEarned ?? 0);
+    done(correctCount, it);
+    setScreen('results');
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [qIdx, workingQueue.length, screen]);
 
   const handleMCQAnswer = (correct) => {
     if (!currentQuestion?.word) return;
@@ -457,7 +379,7 @@ const Quiz = ({
   // ── Results ──
   if (screen === 'results') {
     return (
-      <QuizResultsPage
+      <ResultScreen
         score={correctCount}
         total={initialTotal}
         xpEarned={xpEarned}

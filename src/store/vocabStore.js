@@ -66,14 +66,15 @@ export const useVocabStore = create(
         const completed = new Set(state.completedUnits || []);
         if (allUnitWordsLearned) completed.add(key);
 
+        // ⚠️ Do NOT navigate to 'home' here — the Quiz result screen must
+        // display first. Navigation happens when the user taps "Selesai"
+        // (handleQuizContinue → setPhase('streak') → setView('home')).
         set({
-          view: 'home',
-          currentUnit: null,
-          sessionWordRanks: [],
           completedUnits: Array.from(completed),
           learnedRanks: Array.from(newLearnedRanks),
         });
       },
+
 
       resetRoadmap: () =>
         set({
