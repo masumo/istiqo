@@ -6,11 +6,11 @@ import { getTranslation } from '../../utils/i18n';
 
 // ── Section theming ───────────────────────────────────────────────────────────
 const SECTION_LABELS = {
-  1: { label: 'Foundations',     color: 'emerald' },
-  2: { label: 'Connectors',      color: 'sky' },
-  3: { label: 'Mastery',         color: 'violet' },
-  4: { label: 'Prophets',        color: 'amber' },
-  5: { label: 'Nuances',         color: 'rose' },
+  1: { id: 'Pondasi',    en: 'Foundations', color: 'emerald' },
+  2: { id: 'Penghubung', en: 'Connectors',  color: 'sky' },
+  3: { id: 'Penguasaan', en: 'Mastery',     color: 'violet' },
+  4: { id: 'Para Nabi',  en: 'Prophets',    color: 'amber' },
+  5: { id: 'Nuansa',     en: 'Nuances',     color: 'rose' },
 };
 
 const SECTION_COLORS = {
@@ -73,7 +73,7 @@ const WordCard = ({ wordData, onNext, onPrev, preferredLanguage = 'id' }) => {
 
   const sectionMeta = SECTION_LABELS[wordData.section] || SECTION_LABELS[1];
   const colors = SECTION_COLORS[sectionMeta.color];
-  const t = (key) => getTranslation(preferredLanguage, key);
+  const tr = (key) => getTranslation(preferredLanguage, key);
 
   // Build Howl and auto-play once per card
   useEffect(() => {
@@ -102,7 +102,7 @@ const WordCard = ({ wordData, onNext, onPrev, preferredLanguage = 'id' }) => {
       });
       soundRef.current = sound;
 
-      const t = setTimeout(() => {
+      const tId = setTimeout(() => {
         if (!hasPlayedRef.current && !isMuted) {
           sound.play();
           hasPlayedRef.current = true;
@@ -110,7 +110,7 @@ const WordCard = ({ wordData, onNext, onPrev, preferredLanguage = 'id' }) => {
       }, 300);
 
       return () => {
-        clearTimeout(t);
+        clearTimeout(tId);
         sound.unload();
         soundRef.current = null;
       };
@@ -147,7 +147,7 @@ const WordCard = ({ wordData, onNext, onPrev, preferredLanguage = 'id' }) => {
             <Star className="w-3 h-3 fill-white" />#{wordData.rank}
           </div>
           <div className={`px-3 py-1.5 rounded-full text-xs font-bold ${colors.light} ${colors.text} border ${colors.border}`}>
-            {sectionMeta.label}
+            {sectionMeta[preferredLanguage] || sectionMeta.en}
           </div>
         </div>
 
@@ -180,7 +180,7 @@ const WordCard = ({ wordData, onNext, onPrev, preferredLanguage = 'id' }) => {
           <div className="w-full bg-orange-50 border-2 border-orange-200 rounded-2xl px-4 py-3 flex items-center gap-2">
             <AlertCircle className="w-5 h-5 text-orange-600 flex-shrink-0" />
             <p className="text-sm text-orange-700 font-medium">
-              {wordData.audioError || t('audio_error')}
+              {wordData.audioError || tr('audio_error')}
             </p>
           </div>
         )}
@@ -249,7 +249,7 @@ const WordCard = ({ wordData, onNext, onPrev, preferredLanguage = 'id' }) => {
                   fill={showMnemonic ? 'currentColor' : 'none'}
                 />
                 <span className={`text-sm font-bold ${showMnemonic ? colors.text : 'text-slate-500'}`}>
-                  {showMnemonic ? t('mnemonic.hide') : t('mnemonic.show')}
+                  {showMnemonic ? tr('mnemonic.hide') : tr('mnemonic.show')}
                 </span>
               </div>
               <span className="text-lg">{wordData.mnemonic.emoji}</span>
@@ -295,13 +295,13 @@ const WordCard = ({ wordData, onNext, onPrev, preferredLanguage = 'id' }) => {
           className="flex-1 flex items-center justify-center gap-2 text-slate-400 hover:text-slate-700 hover:bg-slate-50 transition-all border-r-4 border-slate-50 font-bold uppercase tracking-widest text-sm"
         >
           <ChevronLeft className="w-5 h-5" />
-          {t('navigation.back')}
+          {tr('navigation.back')}
         </button>
         <button
           onClick={onNext}
           className={`flex-1 flex items-center justify-center gap-2 ${colors.text} hover:opacity-80 transition-all font-bold uppercase tracking-widest text-sm`}
         >
-          {t('navigation.next')}
+          {tr('navigation.next')}
           <ChevronRight className="w-5 h-5" />
         </button>
       </div>

@@ -312,7 +312,7 @@ const Learn = () => {
   // ── Guard ─────────────────────────────────────────────────────────────────
   if (!currentUnit || sessionWords.length === 0) {
     return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center p-8 text-center">
+      <div className="min-h-screen flex items-center justify-center p-8 text-center" style={{ backgroundColor: '#F6F3E6' }}>
         <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-8 max-w-md w-full">
           <div className="text-2xl font-extrabold text-slate-800">Tidak ada unit aktif.</div>
           <button
@@ -331,7 +331,7 @@ const Learn = () => {
   // ── Phase: quiz ───────────────────────────────────────────────────────────
   if (phase === 'quiz') {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-slate-100 to-slate-50 flex flex-col items-center py-8 px-4">
+      <div className="min-h-screen flex flex-col items-center py-8 px-4" style={{ backgroundColor: '#F6F3E6' }}>
         {/* Header */}
         <div className="w-full max-w-lg flex items-center justify-between mb-6">
           <button
@@ -358,6 +358,7 @@ const Learn = () => {
           unitKey={unitKey}
           onComplete={handleQuizComplete}
           onContinue={handleQuizContinue}
+          lang={preferredLanguage}
           exerciseType="auto"
         />
       </div>
@@ -378,7 +379,7 @@ const Learn = () => {
   const headerProgress = ((currentIndex + 1) / sessionWords.length) * 100;
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col items-center py-8 px-4">
+    <div className="min-h-screen flex flex-col items-center py-8 px-4" style={{ backgroundColor: '#F6F3E6' }}>
       {/* Header */}
       <div className="w-full max-w-lg flex items-center justify-between mb-6">
         <button

@@ -1,9 +1,10 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Trophy, Star, CheckCircle2 } from 'lucide-react';
+import { Star, Clock, BookOpen } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import NurMascot from '../NurMascot/NurMascot';
 import { useUserStore } from '../../store/userStore';
+import { getTranslation } from '../../utils/i18n';
 
 // ─── Design tokens ─────────────────────────────────────────────────────────────
 const C = {
@@ -12,12 +13,15 @@ const C = {
   teal: '#37607D',
   tealDark: '#2A4B63',
   bg: '#F6F3E6',
+  card: '#FFFFFF',
   doneGreen: '#D7FFB1',
   doneBorder: '#218151',
   errorRed: '#FFDFE0',
   errorBorder: '#C62828',
   errorDark: '#991b1b',
 };
+
+const btn3d = 'border-2 border-b-[6px] rounded-2xl active:border-b-2 active:translate-y-[4px] transition-all select-none';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 const shuffle = (arr) => {
@@ -29,11 +33,15 @@ const shuffle = (arr) => {
   return a;
 };
 
-const buildMCQOptions = (words, targetWord) => {
-  const correct = targetWord.translation?.en ?? '';
+/** Pick the localised translation string from a word object. */
+const getLabel = (word, lang) =>
+  word?.translation?.[lang] || word?.translation?.id || word?.translation?.en || '';
+
+const buildMCQOptions = (words, targetWord, lang) => {
+  const correct = getLabel(targetWord, lang);
   const distractors = shuffle(
-    words.filter((w) => (w.translation?.en ?? '') !== correct)
-  ).slice(0, 3).map((w) => w.translation?.en ?? '');
+    words.filter((w) => getLabel(w, lang) !== correct)
+  ).slice(0, 3).map((w) => getLabel(w, lang));
   return shuffle([correct, ...distractors]);
 };
 
@@ -64,30 +72,37 @@ const buildQuestionQueue = (words) => {
   return queue;
 };
 
-// ─── 3D Button helper class ───────────────────────────────────────────────────
-const btn3d = 'border-2 border-b-[6px] rounded-2xl active:border-b-2 active:translate-y-[4px] transition-all';
+const formatDuration = (secs) => {
+  const m = Math.floor(secs / 60);
+  const s = secs % 60;
+  return m > 0 ? `${m}m ${s}s` : `${s}s`;
+};
 
 // ─── MCQ Question ─────────────────────────────────────────────────────────────
-const MCQQuestion = ({ word, allWords, onAnswer }) => {
-  const options = useMemo(() => buildMCQOptions(allWords, word), [word, allWords]);
+const MCQQuestion = ({ word, allWords, lang, onAnswer }) => {
+  const options = useMemo(
+    () => buildMCQOptions(allWords, word, lang),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [word, allWords, lang]
+  );
   const [selected, setSelected] = useState(null);
   const [locked, setLocked] = useState(false);
+
+  const correctLabel = getLabel(word, lang);
 
   const handleClick = (option) => {
     if (locked) return;
     setSelected(option);
     setLocked(true);
-    const correct = option === (word.translation?.en ?? '');
-    onAnswer(correct, option);
+    onAnswer(option === correctLabel, option);
   };
 
-  // Inline styles to avoid Tailwind JIT purge issues with dynamic colors
-  const getOptionInlineStyle = (option) => {
-    const isSelected = selected === option;
-    const isCorrect = option === (word.translation?.en ?? '');
+  const optionStyle = (option) => {
     if (!locked) return {};
-    if (isSelected && isCorrect) return { backgroundColor: C.doneGreen, color: C.doneBorder, borderColor: C.doneBorder };
-    if (isSelected && !isCorrect) return { backgroundColor: C.errorRed, color: C.errorBorder, borderColor: C.errorBorder };
+    const isSelected = selected === option;
+    const isCorrect = option === correctLabel;
+    if (isSelected && isCorrect)  return { backgroundColor: C.doneGreen, color: C.doneBorder, borderColor: C.doneBorder };
+    if (isSelected && !isCorrect) return { backgroundColor: C.errorRed,  color: C.errorBorder, borderColor: C.errorBorder };
     if (!isSelected && isCorrect) return { backgroundColor: C.doneGreen, color: C.doneBorder, borderColor: C.doneBorder };
     return {};
   };
@@ -99,10 +114,12 @@ const MCQQuestion = ({ word, allWords, onAnswer }) => {
           key={i}
           onClick={() => handleClick(option)}
           disabled={locked}
-          className={`w-full p-4 text-left font-bold text-base flex items-center min-h-[56px] select-none ${btn3d} ${!locked ? 'bg-white text-slate-700 border-gray-200 hover:bg-slate-50 cursor-pointer' : 'cursor-default'}`}
-          style={getOptionInlineStyle(option)}
+          className={`w-full p-4 text-left font-bold text-base min-h-[56px] ${btn3d} ${
+            !locked ? 'bg-white text-slate-700 border-gray-200 hover:bg-slate-50 cursor-pointer' : 'cursor-default'
+          }`}
+          style={optionStyle(option)}
           animate={
-            locked && selected === option && option !== (word.translation?.en ?? '')
+            locked && selected === option && option !== correctLabel
               ? { x: [0, -10, 10, -7, 7, -4, 4, 0] }
               : {}
           }
@@ -116,21 +133,21 @@ const MCQQuestion = ({ word, allWords, onAnswer }) => {
 };
 
 // ─── Matching Pairs ───────────────────────────────────────────────────────────
-const MatchingPairs = ({ words, onComplete }) => {
+const MatchingPairs = ({ words, lang, onComplete }) => {
   const count = Math.min(words.length, 6);
   const pairs = useMemo(() => words.slice(0, count), [words, count]);
 
-  const [leftItems] = useState(() => pairs.map((w, i) => ({ id: i, text: w.word, pairId: i })));
+  const [leftItems]  = useState(() => pairs.map((w, i) => ({ id: i, text: w.word,            pairId: i })));
   const [rightItems] = useState(() =>
-    shuffle(pairs.map((w, i) => ({ id: i, text: w.translation?.en ?? '', pairId: i })))
+    shuffle(pairs.map((w, i) => ({ id: i, text: getLabel(w, lang), pairId: i })))
   );
-  const [selLeft, setSelLeft] = useState(null);
-  const [selRight, setSelRight] = useState(null);
-  const [matched, setMatched] = useState(new Set());
+  const [selLeft,   setSelLeft]   = useState(null);
+  const [selRight,  setSelRight]  = useState(null);
+  const [matched,   setMatched]   = useState(new Set());
   const [wrongLeft, setWrongLeft] = useState(null);
-  const [wrongRight, setWrongRight] = useState(null);
-  const [score, setScore] = useState(0);
-  const [done, setDone] = useState(false);
+  const [wrongRight,setWrongRight]= useState(null);
+  const [score,     setScore]     = useState(0);
+  const [done,      setDone]      = useState(false);
 
   useEffect(() => {
     if (!done && matched.size === count) {
@@ -140,17 +157,14 @@ const MatchingPairs = ({ words, onComplete }) => {
   }, [matched, count, done, score, onComplete]);
 
   const tryMatch = useCallback((left, right) => {
-    const ok = left.pairId === right.pairId;
-    if (ok) {
-      setMatched((prev) => new Set(prev).add(left.pairId));
+    if (left.pairId === right.pairId) {
+      setMatched((p) => new Set(p).add(left.pairId));
       setScore((s) => s + 1);
     } else {
-      setWrongLeft(left.id);
-      setWrongRight(right.id);
+      setWrongLeft(left.id); setWrongRight(right.id);
       setTimeout(() => { setWrongLeft(null); setWrongRight(null); }, 650);
     }
-    setSelLeft(null);
-    setSelRight(null);
+    setSelLeft(null); setSelRight(null);
   }, []);
 
   const handleLeft = (item) => {
@@ -159,7 +173,6 @@ const MatchingPairs = ({ words, onComplete }) => {
     setSelLeft(next);
     if (next && selRight) tryMatch(next, selRight);
   };
-
   const handleRight = (item) => {
     if (matched.has(item.pairId) || wrongRight !== null) return;
     const next = selRight?.id === item.id ? null : item;
@@ -167,56 +180,40 @@ const MatchingPairs = ({ words, onComplete }) => {
     if (next && selLeft) tryMatch(selLeft, next);
   };
 
-  const cardState = (item, side) => {
+  const state = (item, side) => {
     if (matched.has(item.pairId)) return 'matched';
-    if (side === 'left' && wrongLeft === item.id) return 'wrong';
+    if (side === 'left'  && wrongLeft  === item.id) return 'wrong';
     if (side === 'right' && wrongRight === item.id) return 'wrong';
-    if (side === 'left' && selLeft?.id === item.id) return 'selected';
+    if (side === 'left'  && selLeft?.id  === item.id) return 'selected';
     if (side === 'right' && selRight?.id === item.id) return 'selected';
     return 'idle';
   };
 
-  const cardStyle = (state) => {
-    const styles = {
-      idle: { bg: 'bg-white', text: 'text-slate-700', border: 'border-gray-200' },
-      selected: { bg: 'bg-[#E8F0F5]', text: 'text-[#37607D]', border: 'border-[#37607D]' },
-      matched: { bg: 'bg-[#D7FFB1]', text: 'text-[#218151]', border: 'border-[#218151]' },
-      wrong: { bg: 'bg-[#FFDFE0]', text: 'text-[#C62828]', border: 'border-[#C62828]' },
-    };
-    return styles[state] || styles.idle;
-  };
+  const cs = { idle: ['bg-white','text-slate-700','border-gray-200'], selected: ['bg-[#E8F0F5]','text-[#37607D]','border-[#37607D]'], matched: ['bg-[#D7FFB1]','text-[#218151]','border-[#218151]'], wrong: ['bg-[#FFDFE0]','text-[#C62828]','border-[#C62828]'] };
 
   return (
-    <div className="w-full space-y-3">
+    <div className="w-full">
       <div className="grid grid-cols-2 gap-3 items-stretch">
         {pairs.map((_, i) => {
-          const li = leftItems[i];
-          const ri = rightItems[i];
-          const ls = cardState(li, 'left');
-          const rs = cardState(ri, 'right');
-          const lStyle = cardStyle(ls);
-          const rStyle = cardStyle(rs);
-
+          const li = leftItems[i]; const ri = rightItems[i];
+          const ls = state(li, 'left'); const rs = state(ri, 'right');
+          const [lBg, lTx, lBd] = cs[ls]; const [rBg, rTx, rBd] = cs[rs];
+          const dimmed = 'opacity-50 cursor-default border-b-[2px] translate-y-[4px]';
           return (
             <React.Fragment key={i}>
               <motion.button
-                onClick={() => handleLeft(li)}
-                disabled={matched.has(li.pairId)}
-                className={`flex flex-col items-center justify-center p-3 text-center min-h-[120px] w-full h-full border-2 border-b-[6px] rounded-2xl select-none transition-all ${ls === 'matched' ? 'opacity-50 cursor-default border-b-[2px] translate-y-[4px]' : ls === 'idle' ? 'cursor-pointer hover:bg-slate-50 active:border-b-2 active:translate-y-[4px]' : 'cursor-pointer'} ${lStyle.bg} ${lStyle.text} ${lStyle.border}`}
-                animate={ls === 'wrong' ? { x: [0, -9, 9, -6, 6, -3, 3, 0] } : {}}
-                transition={{ duration: 0.45 }}
+                onClick={() => handleLeft(li)} disabled={matched.has(li.pairId)}
+                className={`flex items-center justify-center p-3 text-center min-h-[110px] w-full border-2 border-b-[6px] rounded-2xl transition-all ${ls === 'matched' ? dimmed : ls === 'idle' ? 'cursor-pointer hover:opacity-80 active:border-b-2 active:translate-y-[4px]' : 'cursor-pointer'} ${lBg} ${lTx} ${lBd}`}
+                animate={ls === 'wrong' ? { x: [0, -9, 9, -6, 6, 0] } : {}}
+                transition={{ duration: 0.4 }}
               >
-                <span className="text-3xl font-bold leading-tight" style={{ fontFamily: 'Amiri, serif' }} dir="rtl">
-                  {li.text}
-                </span>
+                <span className="text-3xl font-bold leading-tight" style={{ fontFamily: 'Amiri, serif' }} dir="rtl">{li.text}</span>
               </motion.button>
-
               <motion.button
-                onClick={() => handleRight(ri)}
-                disabled={matched.has(ri.pairId)}
-                className={`flex flex-col items-center justify-center p-3 text-center min-h-[120px] w-full h-full border-2 border-b-[6px] rounded-2xl select-none transition-all ${rs === 'matched' ? 'opacity-50 cursor-default border-b-[2px] translate-y-[4px]' : rs === 'idle' ? 'cursor-pointer hover:bg-slate-50 active:border-b-2 active:translate-y-[4px]' : 'cursor-pointer'} ${rStyle.bg} ${rStyle.text} ${rStyle.border}`}
-                animate={rs === 'wrong' ? { x: [0, 9, -9, 6, -6, 3, -3, 0] } : {}}
-                transition={{ duration: 0.45 }}
+                onClick={() => handleRight(ri)} disabled={matched.has(ri.pairId)}
+                className={`flex items-center justify-center p-3 text-center min-h-[110px] w-full border-2 border-b-[6px] rounded-2xl transition-all ${rs === 'matched' ? dimmed : rs === 'idle' ? 'cursor-pointer hover:opacity-80 active:border-b-2 active:translate-y-[4px]' : 'cursor-pointer'} ${rBg} ${rTx} ${rBd}`}
+                animate={rs === 'wrong' ? { x: [0, 9, -9, 6, -6, 0] } : {}}
+                transition={{ duration: 0.4 }}
               >
                 <span className="text-sm font-bold leading-snug">{ri.text}</span>
               </motion.button>
@@ -228,86 +225,100 @@ const MatchingPairs = ({ words, onComplete }) => {
   );
 };
 
-// ─── Results Screen ───────────────────────────────────────────────────────────
-const ResultsScreen = ({ score, total, xpEarned, lessonNum, totalLessons, onContinue }) => {
+// ─── Lesson Badge ─────────────────────────────────────────────────────────────
+const LessonBadge = ({ lessonIndex, totalLessons, qIdx, qTotal, lang }) => {
+  const T = (k) => getTranslation(lang, k);
+  return (
+    <div className="w-full flex items-center justify-between px-1 mb-1">
+      <span className="text-xs font-black uppercase px-3 py-1 rounded-full border-2 border-b-4"
+        style={{ backgroundColor: C.doneGreen, borderColor: C.doneBorder, color: C.doneBorder }}>
+        {T('lesson.label')} {lessonIndex + 1} {T('lesson.of')} {totalLessons}
+      </span>
+      <span className="text-xs font-bold text-slate-400">{qIdx + 1} / {qTotal}</span>
+    </div>
+  );
+};
+
+// ─── Stat Card ────────────────────────────────────────────────────────────────
+const StatCard = ({ icon, value, label, accentClass = 'border-slate-100' }) => (
+  <div className={`flex flex-col items-center gap-1.5 rounded-2xl p-4 border-2 border-b-4 bg-white ${accentClass}`}>
+    {icon}
+    <span className="text-xl font-black text-slate-800">{value}</span>
+    <span className="text-[10px] uppercase tracking-widest font-bold text-slate-400 text-center leading-tight">{label}</span>
+  </div>
+);
+
+// ─── Quiz Results Page ─────────────────────────────────────────────────────────
+const QuizResultsPage = ({ score, total, xpEarned, wordsCount, durationSecs, onContinue, lang }) => {
+  const T = (k) => getTranslation(lang, k);
   const isPerfect = score === total;
-  const pct = Math.round((score / Math.max(total, 1)) * 100);
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      isPerfect
-        ? confetti({ particleCount: 240, spread: 95, origin: { y: 0.45 } })
-        : confetti({ particleCount: 110, spread: 70, origin: { y: 0.5 } });
-    }, 80);
-    return () => clearTimeout(timer);
+    const shoot = (origin) => confetti({ particleCount: isPerfect ? 220 : 100, spread: 90, origin });
+    const t1 = setTimeout(() => shoot({ y: 0.4 }), 120);
+    const t2 = isPerfect ? setTimeout(() => shoot({ y: 0.5, x: 0.3 }), 1300) : null;
+    const t3 = isPerfect ? setTimeout(() => shoot({ y: 0.5, x: 0.7 }), 2000) : null;
+    return () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); };
   }, [isPerfect]);
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 30 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.35 }}
-      className="w-full max-w-lg flex flex-col items-center space-y-5 p-4 min-h-screen"
+      initial={{ opacity: 0, scale: 0.95 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={{ duration: 0.4, type: 'spring', stiffness: 200 }}
+      className="w-full min-h-screen flex flex-col items-center justify-center px-4 py-10"
       style={{ backgroundColor: C.bg }}
     >
-      <div className={`w-full bg-white ${btn3d} border-gray-200 p-6 flex flex-col items-center space-y-5`}>
-        {/* Lesson badge */}
-        <div className="text-xs font-black uppercase tracking-widest px-4 py-1.5 rounded-full border-2 border-b-4"
-          style={{ backgroundColor: C.doneGreen, borderColor: C.doneBorder, color: C.doneBorder }}>
-          Pelajaran {lessonNum} dari {totalLessons}
+      <div className="w-full max-w-sm flex flex-col items-center gap-5">
+        {/* Badge */}
+        <div className="px-5 py-2 rounded-full text-sm font-black border-2 border-b-4 shadow"
+          style={{
+            backgroundColor: isPerfect ? C.doneGreen : '#FFF8E1',
+            borderColor: isPerfect ? C.doneBorder : '#D97706',
+            color: isPerfect ? C.doneBorder : '#92400E',
+          }}>
+          {isPerfect ? T('quiz.results.perfectBadge') : T('quiz.results.lessonBadge')}
         </div>
 
+        {/* Nur mascot */}
         <NurMascot mood="celebrate" size={160} sparkles={true} />
-
-        <h2 className="text-2xl font-extrabold text-slate-800 text-center">
-          {isPerfect ? 'Skor Sempurna!' : 'Pelajaran Selesai!'}
-        </h2>
 
         {/* Stats grid */}
         <div className="grid grid-cols-3 gap-3 w-full">
-          <div className="flex flex-col items-center gap-1 rounded-xl p-4 border-2 border-b-4 border-slate-100">
-            <Trophy className="w-5 h-5 text-amber-500" />
-            <span className="text-xl font-black text-slate-800">{score}/{total}</span>
-            <span className="text-[10px] uppercase tracking-widest font-bold text-slate-400">Skor</span>
-          </div>
-          <div className="flex flex-col items-center gap-1 rounded-xl p-4 border-2 border-b-4 border-slate-100">
-            <CheckCircle2 className="w-5 h-5" style={{ color: C.doneBorder }} />
-            <span className="text-xl font-black" style={{ color: C.doneBorder }}>{pct}%</span>
-            <span className="text-[10px] uppercase tracking-widest font-bold text-slate-400">Akurasi</span>
-          </div>
-          <div className="flex flex-col items-center gap-1 rounded-xl p-4 border-2 border-b-4 border-amber-100">
-            <Star className="w-5 h-5 text-amber-500 fill-amber-400" />
-            <span className="text-xl font-black text-amber-600">+{xpEarned}</span>
-            <span className="text-[10px] uppercase tracking-widest font-bold text-slate-400">XP</span>
-          </div>
+          <StatCard
+            icon={<BookOpen className="w-5 h-5 mb-0.5" style={{ color: C.teal }} />}
+            value={wordsCount}
+            label={T('quiz.results.wordsLearned')}
+            accentClass="border-blue-100"
+          />
+          <StatCard
+            icon={<Star className="w-5 h-5 mb-0.5 fill-amber-400 text-amber-400" />}
+            value={`+${xpEarned}`}
+            label={T('quiz.results.xpEarned')}
+            accentClass="border-amber-100"
+          />
+          <StatCard
+            icon={<Clock className="w-5 h-5 mb-0.5" style={{ color: C.doneBorder }} />}
+            value={formatDuration(durationSecs)}
+            label={T('quiz.results.duration')}
+            accentClass="border-green-100"
+          />
         </div>
 
-        {/* Continue button */}
+        {/* CTA */}
         <motion.button
           onClick={onContinue}
-          whileHover={{ scale: 1.02 }}
-          className={`w-full py-4 font-black text-xl text-white ${btn3d} border-b-[6px]`}
-          style={{ backgroundColor: C.teal, borderColor: C.tealDark }}
+          whileHover={{ scale: 1.03 }}
+          whileTap={{ scale: 0.97 }}
+          className={`w-full py-4 font-black text-xl text-white ${btn3d} border-b-[6px] mt-2`}
+          style={{ backgroundColor: C.green, borderColor: C.greenDark }}
         >
-          Lanjut
+          {T('quiz.results.toMap')} →
         </motion.button>
       </div>
     </motion.div>
   );
 };
-
-// ─── Lesson Badge ─────────────────────────────────────────────────────────────
-const LessonBadge = ({ lessonIndex, totalLessons, qIdx, qTotal }) => (
-  <div className="w-full flex items-center justify-between px-1 mb-1">
-    <span
-      className="text-xs font-black uppercase px-3 py-1 rounded-full border-2 border-b-4"
-      style={{ backgroundColor: C.doneGreen, borderColor: C.doneBorder, color: C.doneBorder }}
-    >
-      Pelajaran {lessonIndex + 1} dari {totalLessons}
-    </span>
-    <span className="text-xs font-bold text-slate-400">{qIdx + 1} / {qTotal}</span>
-  </div>
-);
 
 // ─── Quiz (main export) ───────────────────────────────────────────────────────
 const Quiz = ({
@@ -317,28 +328,34 @@ const Quiz = ({
   unitKey = 'unit',
   onComplete = () => {},
   onContinue = () => {},
+  lang,
 }) => {
-  const { completeLesson } = useUserStore();
-  const safeWords = useMemo(() => (Array.isArray(words) ? words.filter(Boolean) : []), [words]);
+  const { completeLesson, preferredLanguage } = useUserStore();
+  const activeLang = lang || preferredLanguage || 'id';
+
+  const safeWords = useMemo(
+    () => (Array.isArray(words) ? words.filter(Boolean) : []),
+    [words]
+  );
 
   const [workingQueue, setWorkingQueue] = useState(() => buildQuestionQueue(safeWords));
-  const [qIdx, setQIdx] = useState(0);
-  const [mcqAnswered, setMcqAnswered] = useState(null);
-  const [correctCount, setCorrectCount] = useState(0);
-  const [initialTotal, setInitialTotal] = useState(() => buildQuestionQueue(safeWords).length);
-  const [showResults, setShowResults] = useState(false);
-  const [resultsReady, setResultsReady] = useState(false);
-  const [xpEarned, setXpEarned] = useState(0);
+  const [qIdx,        setQIdx]         = useState(0);
+  const [mcqAnswered, setMcqAnswered]  = useState(null);
+  const [correctCount,setCorrectCount] = useState(0);
+  const [initialTotal]                 = useState(() => buildQuestionQueue(safeWords).length);
+  const [showResults, setShowResults]  = useState(false);
+  const [xpEarned,    setXpEarned]     = useState(0);
+  const [durationSecs,setDurationSecs] = useState(0);
+  const startTimeRef = useRef(Date.now());
 
   useEffect(() => {
+    startTimeRef.current = Date.now();
     const q = buildQuestionQueue(safeWords);
     setWorkingQueue(q);
-    setInitialTotal(q.length);
     setQIdx(0);
     setMcqAnswered(null);
     setCorrectCount(0);
     setShowResults(false);
-    setResultsReady(false);
   }, [safeWords]);
 
   const currentQuestion = workingQueue[qIdx] || null;
@@ -355,17 +372,12 @@ const Quiz = ({
   }, []);
 
   const finishQuiz = useCallback((finalCorrect) => {
+    const elapsed = Math.round((Date.now() - startTimeRef.current) / 1000);
+    setDurationSecs(elapsed);
     const result = completeLesson(unitKey, lessonIndex, totalLessons, finalCorrect, initialTotal);
     setXpEarned(result?.xpEarned ?? 0);
     onComplete(finalCorrect, initialTotal);
-    const isPerfect = finalCorrect === initialTotal;
-    setTimeout(() => {
-      isPerfect
-        ? confetti({ particleCount: 240, spread: 95, origin: { y: 0.45 } })
-        : confetti({ particleCount: 110, spread: 70, origin: { y: 0.5 } });
-    }, 100);
     setShowResults(true);
-    setTimeout(() => setResultsReady(true), 500);
   }, [completeLesson, unitKey, lessonIndex, totalLessons, initialTotal, onComplete]);
 
   useEffect(() => {
@@ -390,54 +402,30 @@ const Quiz = ({
     advance(matchScore === matchTotal, null);
   }, [advance, currentQuestion]);
 
-  // ── Loading spinner ──
-  if (!currentQuestion || safeWords.length === 0) {
-    if (showResults) {
-      if (!resultsReady) {
-        return (
-          <div className="w-full flex justify-center p-8">
-            <div className="w-16 h-16 rounded-full border-4 border-emerald-200 animate-spin border-t-[#58CC02]" />
-          </div>
-        );
-      }
-      return (
-        <ResultsScreen
-          score={correctCount}
-          total={initialTotal}
-          xpEarned={xpEarned}
-          lessonNum={lessonIndex + 1}
-          totalLessons={totalLessons}
-          onContinue={onContinue}
-        />
-      );
-    }
-    return (
-      <div className="w-full min-h-[50vh] flex flex-col items-center justify-center p-4">
-        <div className="w-12 h-12 rounded-full border-4 border-gray-200 animate-spin mb-4"
-          style={{ borderTopColor: C.teal }} />
-        <p className="text-gray-500 font-medium">Memuat kuis...</p>
-      </div>
-    );
-  }
+  const T = (k) => getTranslation(activeLang, k);
 
   // ── Results ──
   if (showResults) {
-    if (!resultsReady) {
-      return (
-        <div className="w-full flex justify-center p-8">
-          <div className="w-16 h-16 rounded-full border-4 border-emerald-200 animate-spin border-t-[#58CC02]" />
-        </div>
-      );
-    }
     return (
-      <ResultsScreen
+      <QuizResultsPage
         score={correctCount}
         total={initialTotal}
         xpEarned={xpEarned}
-        lessonNum={lessonIndex + 1}
-        totalLessons={totalLessons}
+        wordsCount={safeWords.length}
+        durationSecs={durationSecs}
         onContinue={onContinue}
+        lang={activeLang}
       />
+    );
+  }
+
+  // ── Loading ──
+  if (!currentQuestion || safeWords.length === 0) {
+    return (
+      <div className="w-full min-h-[50vh] flex flex-col items-center justify-center p-4" style={{ backgroundColor: C.bg }}>
+        <div className="w-12 h-12 rounded-full border-4 border-gray-200 animate-spin mb-4" style={{ borderTopColor: C.teal }} />
+        <p className="text-gray-500 font-medium">{T('loading')}</p>
+      </div>
     );
   }
 
@@ -445,73 +433,45 @@ const Quiz = ({
   if (currentQuestion.type === 'mcq') {
     const word = currentQuestion.word;
     const isCorrect = mcqAnswered?.correct;
-    const nextBtnLabel = mcqAnswered
-      ? isCorrect
-        ? qIdx < workingQueue.length - 1 ? 'Lanjut' : 'Lanjut'
-        : 'Mengerti'
-      : '';
+    const nextLabel = mcqAnswered ? (isCorrect ? T('quiz.continue') : T('gotIt')) : '';
 
     return (
-      <div
-        className="w-full max-w-lg flex flex-col items-center space-y-4 p-4 min-h-screen"
-        style={{ backgroundColor: C.bg }}
-      >
-        <LessonBadge
-          lessonIndex={lessonIndex}
-          totalLessons={totalLessons}
-          qIdx={qIdx}
-          qTotal={workingQueue.length}
-        />
+      <div className="w-full max-w-lg flex flex-col items-center space-y-4 p-4 min-h-screen" style={{ backgroundColor: C.bg }}>
+        <LessonBadge lessonIndex={lessonIndex} totalLessons={totalLessons} qIdx={qIdx} qTotal={workingQueue.length} lang={activeLang} />
 
-        {/* Progress bar */}
         <div className="w-full h-3 bg-slate-200 rounded-full overflow-hidden">
-          <motion.div
-            className="h-full rounded-full"
-            style={{ backgroundColor: C.doneBorder }}
-            animate={{ width: `${progressPct}%` }}
-            transition={{ duration: 0.4 }}
-          />
+          <motion.div className="h-full rounded-full" style={{ backgroundColor: C.doneBorder }} animate={{ width: `${progressPct}%` }} transition={{ duration: 0.4 }} />
         </div>
 
         <AnimatePresence mode="wait">
           <motion.div
             key={`mcq-${qIdx}`}
-            initial={{ opacity: 0, y: 18 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -18 }}
+            initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -18 }}
             className={`w-full bg-white ${btn3d} border-gray-200 p-6 flex flex-col items-center space-y-5`}
           >
-            {/* Quiz label */}
-            <div className="text-xs font-black uppercase text-slate-400 tracking-widest">Kuis</div>
+            <div className="text-xs font-black uppercase text-slate-400 tracking-widest">{T('quiz.title')}</div>
 
-            {/* Arabic word */}
             <div className="text-center py-2">
-              <span
-                className="text-6xl font-bold text-slate-800"
-                style={{ fontFamily: 'Amiri, serif' }}
-                dir="rtl"
-              >
+              <span className="text-6xl font-bold text-slate-800" style={{ fontFamily: 'Amiri, serif' }} dir="rtl">
                 {word?.word}
               </span>
             </div>
 
-            <MCQQuestion word={word} allWords={safeWords} onAnswer={handleMCQAnswer} />
+            <MCQQuestion word={word} allWords={safeWords} lang={activeLang} onAnswer={handleMCQAnswer} />
 
-            {/* Lanjut / Mengerti button */}
             <AnimatePresence>
               {mcqAnswered && (
                 <motion.button
                   key="next-btn"
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
+                  initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
                   onClick={handleMCQNext}
                   className={`w-full py-4 font-black text-xl text-white flex items-center justify-center gap-2 ${btn3d} border-b-[6px]`}
                   style={{
                     backgroundColor: isCorrect ? C.doneBorder : C.errorBorder,
-                    borderColor: isCorrect ? '#166534' : C.errorDark,
+                    borderColor:     isCorrect ? '#166534'   : C.errorDark,
                   }}
                 >
-                  {nextBtnLabel}
+                  {nextLabel}
                 </motion.button>
               )}
             </AnimatePresence>
@@ -523,39 +483,21 @@ const Quiz = ({
 
   // ── Match ──
   return (
-    <div
-      className="w-full max-w-lg flex flex-col items-center space-y-4 p-4 min-h-screen"
-      style={{ backgroundColor: C.bg }}
-    >
-      <LessonBadge
-        lessonIndex={lessonIndex}
-        totalLessons={totalLessons}
-        qIdx={qIdx}
-        qTotal={workingQueue.length}
-      />
+    <div className="w-full max-w-lg flex flex-col items-center space-y-4 p-4 min-h-screen" style={{ backgroundColor: C.bg }}>
+      <LessonBadge lessonIndex={lessonIndex} totalLessons={totalLessons} qIdx={qIdx} qTotal={workingQueue.length} lang={activeLang} />
 
-      {/* Progress bar */}
       <div className="w-full h-3 bg-slate-200 rounded-full overflow-hidden">
-        <motion.div
-          className="h-full rounded-full"
-          style={{ backgroundColor: C.teal }}
-          animate={{ width: `${progressPct}%` }}
-          transition={{ duration: 0.4 }}
-        />
+        <motion.div className="h-full rounded-full" style={{ backgroundColor: C.teal }} animate={{ width: `${progressPct}%` }} transition={{ duration: 0.4 }} />
       </div>
 
       <AnimatePresence mode="wait">
         <motion.div
           key={`match-${qIdx}`}
-          initial={{ opacity: 0, y: 18 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -18 }}
+          initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -18 }}
           className={`w-full bg-white ${btn3d} border-gray-200 p-6 flex flex-col items-center space-y-4`}
         >
-          <div className="text-xs font-black uppercase text-slate-400 tracking-widest">
-            Cocokkan Kata
-          </div>
-          <MatchingPairs words={currentQuestion.words} onComplete={handleMatchComplete} />
+          <div className="text-xs font-black uppercase text-slate-400 tracking-widest">{T('quiz.matchTitle')}</div>
+          <MatchingPairs words={currentQuestion.words} lang={activeLang} onComplete={handleMatchComplete} />
         </motion.div>
       </AnimatePresence>
     </div>

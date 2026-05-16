@@ -45,6 +45,18 @@ const ID_STRINGS = {
   loading_verse: 'Memuat ayat...',
   loading_audio: 'Memuat audio...',
   audio_error: 'Audio tidak tersedia',
+  'mnemonic.show': 'Trik Ingatan',
+  'mnemonic.hide': 'Sembunyikan',
+  'navigation.back': 'Kembali',
+  'navigation.next': 'Lanjut',
+  'quiz.results.title': 'Kuis Selesai!',
+  'quiz.results.wordsLearned': 'Kata Dipelajari',
+  'quiz.results.xpEarned': 'XP Diperoleh',
+  'quiz.results.duration': 'Waktu',
+  'quiz.results.toMap': 'Lanjut ke Peta',
+  'quiz.results.done': 'Selesai',
+  'quiz.results.perfectBadge': 'Skor Sempurna!',
+  'quiz.results.lessonBadge': 'Pelajaran Selesai!',
 };
 
 const EN_STRINGS = {
@@ -88,6 +100,18 @@ const EN_STRINGS = {
   loading_verse: 'Loading verse...',
   loading_audio: 'Loading audio...',
   audio_error: 'Audio unavailable',
+  'mnemonic.show': 'Memory Aid',
+  'mnemonic.hide': 'Hide',
+  'navigation.back': 'Back',
+  'navigation.next': 'Next',
+  'quiz.results.title': 'Quiz Complete!',
+  'quiz.results.wordsLearned': 'Words Learned',
+  'quiz.results.xpEarned': 'XP Earned',
+  'quiz.results.duration': 'Duration',
+  'quiz.results.toMap': 'Back to Map',
+  'quiz.results.done': 'Done',
+  'quiz.results.perfectBadge': 'Perfect Score!',
+  'quiz.results.lessonBadge': 'Lesson Complete!',
 };
 
 /**
