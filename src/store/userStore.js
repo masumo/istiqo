@@ -239,6 +239,7 @@ export const useUserStore = create(
   persist(
     (set, get) => ({
       preferredLanguage: 'id',
+      hasPickedLanguage: false,
       dailyGoal: 5,
       notificationTime: '07:00',
       isOnboarded: false,
@@ -266,7 +267,7 @@ export const useUserStore = create(
       isAudioMuted: false,
 
       setCurrentQuizWords: (words) => set({ currentQuizWords: words }),
-      setLanguage: (lang) => set({ preferredLanguage: lang }),
+      setLanguage: (lang) => set({ preferredLanguage: lang, hasPickedLanguage: true }),
       setDailyGoal: (goal) => set({ dailyGoal: goal }),
       setNotificationTime: (time) => set({ notificationTime: time }),
       completeOnboarding: () => set({ isOnboarded: true }),

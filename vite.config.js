@@ -31,5 +31,14 @@ export default defineConfig({
   server: {
     port: 5173,
     host: true,
+    proxy: {
+      // All /api/* requests are forwarded to the Express backend.
+      // This ensures the frontend NEVER calls external APIs directly.
+      '/api': {
+        target: 'http://localhost:3001',
+        changeOrigin: true,
+        secure: false,
+      },
+    },
   },
 })
