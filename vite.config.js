@@ -7,24 +7,31 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['favicon.svg'],
+      includeAssets: ['favicon.ico', 'nur-master.png', 'nur-master.jpg'],
       manifest: {
         name: 'Istiqo - Quran Vocab Journey',
         short_name: 'Istiqo',
-        description: 'Quran Vocab Journey - Progressive Web App',
-        theme_color: '#10b981',
+        description: 'Gamified Quranic Arabic Vocabulary Learning App',
+        theme_color: '#F6F3E6',
+        background_color: '#F6F3E6',
+        display: 'standalone',
+        orientation: 'portrait',
+        start_url: '/',
         icons: [
           {
-            src: 'favicon.svg',
+            src: '/assets/icons/icon-192x192.png',
             sizes: '192x192',
-            type: 'image/svg+xml'
+            type: 'image/png'
           },
           {
-            src: 'favicon.svg',
+            src: '/assets/icons/icon-512x512.png',
             sizes: '512x512',
-            type: 'image/svg+xml'
+            type: 'image/png'
           }
         ]
+      },
+      workbox: {
+        globPatterns: ['**/*.{js,css,html,ico,png,svg,jpg,jpeg}']
       }
     })
   ],
