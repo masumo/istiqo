@@ -8,11 +8,12 @@ import { GoogleOAuthProvider } from '@react-oauth/google';
 import Learn from './pages/Learn';
 import Home from './pages/Home';
 import { useVocabStore } from './store/vocabStore';
+import LoginScreen from './components/Auth/LoginScreen';
 
 const queryClient = new QueryClient();
 
 function App() {
-  const { isOnboarded, completeOnboarding } = useUserStore();
+  const { isOnboarded, completeOnboarding, authStatus } = useUserStore();
   const view = useVocabStore((s) => s.view);
   const [showSplash, setShowSplash] = useState(true);
   const [appReady, setAppReady] = useState(false);
@@ -28,13 +29,15 @@ function App() {
   };
 
   return (
-    <GoogleOAuthProvider clientId="MOCK_CLIENT_ID">
+    <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID}>
       <QueryClientProvider client={queryClient}>
         <div className="min-h-screen bg-slate-50 font-sans">
           {showSplash && <SplashScreen onComplete={handleSplashComplete} />}
 
           {!showSplash && appReady && (
-            !isOnboarded ? (
+            authStatus === 'pending' ? (
+              <LoginScreen />
+            ) : !isOnboarded ? (
               <OnboardingFlow onComplete={completeOnboarding} />
             ) : (
               <>

@@ -247,6 +247,11 @@ export const useUserStore = create(
       dailyWordsLearned: 0,
       dailyGoalCompleted: false,
       dailyGoalCompletedAt: null,
+      lastStreakClaimedDate: null,
+      // Auth states
+      user: null,
+      authStatus: 'pending', // 'pending' | 'authenticated' | 'guest'
+      guestCreatedAt: null,
       // { [unitKey]: { completedLessons: number[], totalLessons: number } }
       lessonProgress: {},
       currentQuizWords: [],
@@ -260,6 +265,13 @@ export const useUserStore = create(
       completeOnboarding: () => set({ isOnboarded: true }),
       setAuthToken: (token) => set({ authToken: token }),
       setAllowUserApiCalls: (allow) => set({ allowUserApiCalls: allow }),
+      
+      setUser: (user) => set({ user, authStatus: 'authenticated' }),
+      setGuestMode: () => set((state) => ({ 
+        authStatus: 'guest', 
+        guestCreatedAt: state.guestCreatedAt || new Date().toISOString() 
+      })),
+      logout: () => set({ user: null, authStatus: 'guest', authToken: null }),
 
       // ── Quiz timer ────────────────────────────────────────────────────────
       startQuizTimer: () => set({ quizStartTime: Date.now() }),
@@ -397,6 +409,12 @@ export const useUserStore = create(
       setLastSessionDate: (date) => set({ lastSessionDate: date }),
       incrementStreak: () => set((state) => ({ streak: (state.streak || 0) + 1 })),
       resetStreak: () => set({ streak: 0 }),
+      hasClaimedStreakToday: () => {
+        return get().lastStreakClaimedDate === todayKey();
+      },
+      claimStreakToday: () => {
+        set({ lastStreakClaimedDate: todayKey() });
+      },
     }),
     { name: 'istiqo-user-storage', storage: createJSONStorage(() => localStorage) }
   )

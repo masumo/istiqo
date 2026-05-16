@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion';
 import NurMascot from '../NurMascot/NurMascot';
 import ResultScreen from './ResultScreen';
+import StreakScreen from './StreakScreen';
 import { useUserStore, getUIString } from '../../store/userStore';
 import { getTranslation } from '../../utils/i18n';
 
@@ -271,7 +272,16 @@ const Quiz = ({
   onContinue = () => {},
   lang,
 }) => {
-  const { completeLesson, preferredLanguage, startQuizTimer, getQuizElapsedSecs, clearQuizTimer } = useUserStore();
+  const { 
+    completeLesson, 
+    preferredLanguage, 
+    startQuizTimer, 
+    getQuizElapsedSecs, 
+    clearQuizTimer,
+    streak,
+    hasClaimedStreakToday,
+    claimStreakToday
+  } = useUserStore();
   const activeLang = lang || preferredLanguage || 'id';
 
   const safeWords = useMemo(
@@ -279,7 +289,7 @@ const Quiz = ({
     [words]
   );
 
-  // 'transition' → 'quiz' → 'results'
+  // 'transition' → 'quiz' → 'streak' → 'results'
   const [screen, setScreen] = useState('transition');
 
   const [workingQueue, setWorkingQueue] = useState(() => buildQuestionQueue(safeWords));
@@ -325,7 +335,7 @@ const Quiz = ({
   // Store latest values in refs so the finish effect never has stale captures
   // but also never re-fires due to reference churn.
   const storeRef = useRef({});
-  storeRef.current = { getQuizElapsedSecs, clearQuizTimer, completeLesson, onComplete, unitKey, lessonIndex, totalLessons, initialTotal };
+  storeRef.current = { getQuizElapsedSecs, clearQuizTimer, completeLesson, onComplete, unitKey, lessonIndex, totalLessons, initialTotal, hasClaimedStreakToday };
 
   useEffect(() => {
     if (screen !== 'quiz') return;
@@ -335,7 +345,7 @@ const Quiz = ({
     finishedRef.current = true;
 
     const { getQuizElapsedSecs: elapsed, clearQuizTimer: clearTimer, completeLesson: complete,
-            onComplete: done, unitKey: uk, lessonIndex: li, totalLessons: tl, initialTotal: it } = storeRef.current;
+            onComplete: done, unitKey: uk, lessonIndex: li, totalLessons: tl, initialTotal: it, hasClaimedStreakToday: checkStreak } = storeRef.current;
 
     const secs = elapsed();
     clearTimer();
@@ -343,7 +353,12 @@ const Quiz = ({
     const result = complete(uk, li, tl, correctCount, it);
     setXpEarned(result?.xpEarned ?? 0);
     done(correctCount, it);
-    setScreen('results');
+    
+    if (!checkStreak()) {
+      setScreen('streak');
+    } else {
+      setScreen('results');
+    }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [qIdx, workingQueue.length, screen]);
 
@@ -373,6 +388,22 @@ const Quiz = ({
         wordsCount={safeWords.length}
         onStartQuiz={handleStartQuiz}
       />
+    );
+  }
+
+  // ── Streak ──
+  if (screen === 'streak') {
+    return (
+      <div className="w-full flex items-center justify-center">
+        <StreakScreen
+          streak={streak}
+          lang={activeLang}
+          onDone={() => {
+            claimStreakToday();
+            setScreen('results');
+          }}
+        />
+      </div>
     );
   }
 
