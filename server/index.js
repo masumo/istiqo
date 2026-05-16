@@ -69,7 +69,7 @@ app.get('/api/health', (_req, res) => {
 
 // ── Production: serve Vite build (Skip on Vercel) ───────────────────────────────
 // On Vercel, the frontend is served as static files from the CDN.
-// This logic is only needed for local production testing or other platforms.
+const distPath = join(__dirname, '..', 'dist');
 if (process.env.NODE_ENV === 'production' && existsSync(distPath) && !process.env.VERCEL) {
   app.use(express.static(distPath));
   // SPA fallback: all non-/api routes → index.html

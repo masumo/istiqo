@@ -77,13 +77,28 @@ async function proxyToContentApi(req, res, qfPath) {
       response = await attempt(token);
     }
 
-    const data = await response.json();
+    let data;
+    const contentType = response.headers.get('content-type');
+    
+    if (contentType && contentType.includes('application/json')) {
+      data = await response.json();
+    } else {
+      const text = await response.text();
+      console.error('[quran proxy] Upstream returned non-JSON:', text.slice(0, 200));
+      return res.status(response.status || 502).json({
+        error: 'Upstream API error',
+        message: 'The Quran API returned a non-JSON response.',
+        status: response.status
+      });
+    }
+
     return res.status(response.status).json(data);
   } catch (err) {
-    console.error('[quran proxy] Proxy error:', err.message);
-    return res.status(502).json({
-      error:  'Quran Content API proxy error',
-      detail: err.message,
+    console.error('[quran proxy] Execution error:', err.message);
+    return res.status(500).json({
+      error:  'Internal Server Error',
+      message: err.message,
+      path: qfPath
     });
   }
 }
