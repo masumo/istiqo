@@ -103,7 +103,7 @@ const SectionBanner = ({ title, subtitle, color, sectionLabel }) => (
 const RING_SIZE = 84;
 const BUBBLE_SIZE = 64;
 const RING_STROKE = 7;
-const ROW_H = 130;
+const ROW_H = 180;
 
 const zigX = (idx) => {
   const cycle = idx % 4;
@@ -173,26 +173,26 @@ const UnitCircle = ({ unitNum, isLocked, isCompleted, pct, isNext, onStart, lang
         </button>
       </div>
 
-      <div className="mt-2 text-center">
+      <div className="absolute top-[100%] left-1/2 -translate-x-1/2 mt-3 text-center z-10 flex flex-col items-center w-36 px-2 py-1 bg-[#F6F3E6] rounded-xl shadow-sm border border-white/50">
         <div
-          className="text-xs font-bold"
-          style={{ color: isLocked ? C.lockedBorder : isCompleted ? C.doneBorder : C.teal }}
+          className="text-xs font-black uppercase tracking-wider"
+          style={{ color: isLocked ? C.lockedBorder : isCompleted ? C.doneBorder : C.tealDark }}
         >
           {s('unit')} {unitNum}
         </div>
         {isLocked && (
-          <div className="flex items-center justify-center gap-0.5 mt-0.5">
-            <Lock className="w-2.5 h-2.5 text-gray-400" />
-            <span className="text-[9px] text-gray-400 font-medium">{s('finishPrev')}</span>
+          <div className="flex items-center justify-center gap-1 mt-1">
+            <Lock className="w-3 h-3 text-gray-400" />
+            <span className="text-[10px] text-gray-400 font-bold leading-tight">{s('finishPrev')}</span>
           </div>
         )}
         {isCompleted && (
-          <div className="text-[9px] font-black mt-0.5" style={{ color: C.doneBorder }}>
+          <div className="text-[10px] font-black mt-1 uppercase tracking-widest" style={{ color: C.doneBorder }}>
             {s('done')}
           </div>
         )}
         {!isLocked && !isCompleted && (
-          <div className="text-[9px] text-gray-400 mt-0.5 font-medium">{s('pctDone')(pct)}</div>
+          <div className="text-[10px] text-gray-500 mt-1 font-bold">{s('pctDone')(pct)}</div>
         )}
       </div>
     </div>
@@ -224,11 +224,11 @@ const JourneyPath = ({ units, getUnitStatus, onUnitStart, lang }) => {
           return (
             <line
               key={i}
-              x1={pos.cx} y1={pos.cy + RING_SIZE / 2}
-              x2={next.cx} y2={next.cy - RING_SIZE / 2}
+              x1={pos.cx} y1={pos.cy + RING_SIZE / 2 + 10}
+              x2={next.cx} y2={next.cy - RING_SIZE / 2 - 10}
               stroke={isCompleted ? C.doneBorder : C.pathLine}
-              strokeWidth={isCompleted ? 3 : 2}
-              strokeDasharray={isCompleted ? 'none' : '6 5'}
+              strokeWidth={isCompleted ? 4 : 3}
+              strokeDasharray={isCompleted ? 'none' : '8 6'}
               strokeLinecap="round"
             />
           );
