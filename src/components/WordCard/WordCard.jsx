@@ -61,20 +61,31 @@ const highlightVerse = (verse, target) => {
 // ── WordCard ──────────────────────────────────────────────────────────────────
 const WordCard = ({ wordData, onNext, onPrev, preferredLanguage = 'id' }) => {
   // Derive mute state from global store so header toggle is reflected instantly
-  const isAudioMuted = useUserStore((s) => s.isAudioMuted);
+  const isAudioMuted  = useUserStore((s) => s.isAudioMuted);
+  const toggleAudio   = useUserStore((s) => s.toggleAudio);
 
   const [isBookmarked, setIsBookmarked] = useState(false);
   const [showMnemonic, setShowMnemonic] = useState(false);
   const [audioError, setAudioError]     = useState(false);
   const soundRef      = useRef(null);
   const hasPlayedRef  = useRef(false);
+  const lastUrlRef    = useRef(null);
 
   const sectionMeta = SECTION_LABELS[wordData.section] || SECTION_LABELS[1];
   const colors      = SECTION_COLORS[sectionMeta.color];
   const tr          = (key) => getTranslation(preferredLanguage, key);
 
-  // Build Howl and auto-play once per card
+  // Active language — prefer what was baked into wordData, fall back to prop
+  const lang = wordData.preferredLanguage || preferredLanguage;
+
+  // Build Howl and auto-play once per card.
+  // Guard with lastUrlRef so re-renders that don't change the URL never
+  // create a second Howl instance (which caused the double-audio bug).
   useEffect(() => {
+    const url = wordData.audioUrl || null;
+    if (url === lastUrlRef.current) return; // same URL — do nothing
+    lastUrlRef.current = url;
+
     hasPlayedRef.current = false;
     setShowMnemonic(false);
     setAudioError(false);
@@ -84,9 +95,9 @@ const WordCard = ({ wordData, onNext, onPrev, preferredLanguage = 'id' }) => {
       soundRef.current = null;
     }
 
-    if (wordData.audioUrl) {
+    if (url) {
       const sound = new Howl({
-        src: [wordData.audioUrl],
+        src: [url],
         html5: true,
         mute: isAudioMuted,
         onloaderror: (_id, err) => { console.error('Audio load error:', err); setAudioError(true); },
@@ -105,12 +116,15 @@ const WordCard = ({ wordData, onNext, onPrev, preferredLanguage = 'id' }) => {
         clearTimeout(tId);
         sound.unload();
         soundRef.current = null;
+        lastUrlRef.current = null;
       };
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [wordData.audioUrl]);
 
-  // Sync mute state to Howl whenever global toggle changes; stop immediately if muted
+  // Sync mute state to Howl whenever global toggle changes.
+  // Only stops audio when muting — never initiates playback (that is
+  // handled exclusively by the audioUrl effect above).
   useEffect(() => {
     if (!soundRef.current) return;
     soundRef.current.mute(isAudioMuted);
@@ -118,6 +132,15 @@ const WordCard = ({ wordData, onNext, onPrev, preferredLanguage = 'id' }) => {
       soundRef.current.stop();
     }
   }, [isAudioMuted]);
+
+  const handleToggleAudio = () => {
+    const willBeMuted = !isAudioMuted;
+    toggleAudio();
+    if (!willBeMuted && soundRef.current && !soundRef.current.playing()) {
+      soundRef.current.mute(false);
+      soundRef.current.play();
+    }
+  };
 
   const handleManualPlay = () => {
     if (isAudioMuted || !isSoundEnabled()) return;
@@ -128,12 +151,30 @@ const WordCard = ({ wordData, onNext, onPrev, preferredLanguage = 'id' }) => {
     hasPlayedRef.current = true;
   };
 
-  // Resolve verse translation from multiple possible field names
-  const verseTranslationText =
-    wordData.verseTranslation ||
-    wordData.translation_text ||
-    wordData.verse_translation ||
-    null;
+  // Resolve verse translation — use the pre-cleaned string passed from Learn.jsx.
+  // Apply a comprehensive fallback chain so English never silently disappears.
+  const verseTranslationText = (() => {
+    if (lang === 'en') {
+      return (
+        wordData.verseTranslation ||
+        wordData.en_translation ||
+        wordData.english_translation ||
+        wordData.translation_en ||
+        wordData.verse_translation_en ||
+        wordData.verse_translation ||
+        wordData.translation_text ||
+        null
+      );
+    }
+    return (
+      wordData.verseTranslation ||
+      wordData.id_translation ||
+      wordData.indonesian ||
+      wordData.translation_text ||
+      wordData.verse_translation ||
+      null
+    );
+  })();
 
   return (
     <motion.div
@@ -158,9 +199,11 @@ const WordCard = ({ wordData, onNext, onPrev, preferredLanguage = 'id' }) => {
 
         {/* Action buttons */}
         <div className="flex gap-2">
+          {/* Sound toggle — wired to global store so it syncs with header button */}
           <button
-            onClick={handleManualPlay}
+            onClick={handleToggleAudio}
             className="p-2 bg-slate-100/80 backdrop-blur-sm rounded-full text-slate-600 hover:bg-slate-200 transition-all"
+            title={isAudioMuted ? 'Unmute' : 'Mute'}
           >
             {isAudioMuted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
           </button>
@@ -188,9 +231,9 @@ const WordCard = ({ wordData, onNext, onPrev, preferredLanguage = 'id' }) => {
           </div>
         )}
 
-        {/* Arabic word */}
+        {/* Arabic word — tap to replay audio */}
         <div className="space-y-1">
-          <button onClick={handleManualPlay} className="group focus:outline-none">
+          <button onClick={handleManualPlay} className="group focus:outline-none" title="Tap to replay">
             <h2
               className="text-4xl sm:text-5xl font-bold text-slate-800 leading-relaxed group-hover:opacity-75 transition-opacity"
               style={{ fontFamily: 'Amiri, serif' }}
@@ -219,14 +262,23 @@ const WordCard = ({ wordData, onNext, onPrev, preferredLanguage = 'id' }) => {
             <p className="text-xl sm:text-2xl leading-loose text-slate-700" style={{ fontFamily: 'Amiri, serif' }} dir="rtl">
               {highlightVerse(wordData.verseArabic, wordData.arabic)}
             </p>
-            {/* Arti Ayat — always rendered when data is present */}
-            {verseTranslationText && (
+            {/* Arti Ayat — always rendered when translation data is present */}
+            {verseTranslationText ? (
               <div className="mt-2 pt-2 border-t border-slate-200">
-                <p className="text-sm sm:text-base text-slate-600 leading-relaxed italic">
-                  &ldquo;{verseTranslationText}&rdquo;
+                <p className="text-sm sm:text-base text-gray-600 leading-relaxed italic mt-2 text-center px-4">
+                  &ldquo;{verseTranslationText.length > 200
+                    ? verseTranslationText.slice(0, 200) + '…'
+                    : verseTranslationText}&rdquo;
                 </p>
-                <p className="text-xs sm:text-sm font-medium text-slate-400 mt-1 uppercase tracking-widest">
+                <p className="text-xs sm:text-sm font-medium text-slate-400 mt-1 uppercase tracking-widest text-center">
                   {wordData.surahName} : {wordData.ayahNumber}
+                </p>
+              </div>
+            ) : (
+              /* Placeholder keeps layout stable while translation loads */
+              <div className="mt-2 pt-2 border-t border-slate-200">
+                <p className="text-sm sm:text-base text-gray-400 italic mt-2 text-center px-4">
+                  {lang === 'en' ? 'Translation loading…' : 'Terjemahan dimuat…'}
                 </p>
               </div>
             )}

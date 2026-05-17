@@ -18,7 +18,8 @@ const BASE_URL = '/api/quran';
  * @returns {Promise<Object>}
  */
 export const fetchVersesByChapter = async (chapterNumber, language = 'id') => {
-  const translationId = language === 'id' ? 33 : 131;
+  // 33 = Bahasa Indonesia (Kemenag), 20 = Saheeh International (English)
+  const translationId = language === 'id' ? 33 : 20;
   const params = new URLSearchParams({
     words: 'true',
     word_fields: 'text_uthmani,location,translation,transliteration',
@@ -51,8 +52,11 @@ export const fetchTopWords = async (language = 'id') => {
  * @returns {Promise<Object>}
  */
 export const fetchRecitationAudio = async (ayahKey, recitationId = 7) => {
+  // Encode the colon in ayahKey (e.g. "114:4" → "114%3A4") so Express
+  // route params capture the full key instead of stopping at the colon.
+  const encodedKey = encodeURIComponent(ayahKey);
   const response = await fetch(
-    `${BASE_URL}/recitations/${recitationId}/by_ayah/${ayahKey}`
+    `${BASE_URL}/recitations/${recitationId}/by_ayah/${encodedKey}`
   );
   if (!response.ok) {
     throw new Error(`Failed to fetch recitation for ${ayahKey}`);
@@ -70,15 +74,17 @@ export const fetchRecitation = fetchRecitationAudio;
  * @returns {Promise<Object>}
  */
 export const fetchVerseByKey = async (ayahKey, language = 'id') => {
-  const translationId = language === 'id' ? 33 : 131;
+  // 33 = Bahasa Indonesia (Kemenag), 20 = Saheeh International (English)
+  const translationId = language === 'id' ? 33 : 20;
   const params = new URLSearchParams({
     fields: 'text_uthmani',
     translations: String(translationId),
-    audio: '7',
     language,
   });
 
-  const response = await fetch(`${BASE_URL}/verses/by_key/${ayahKey}?${params}`);
+  // Encode the colon in ayahKey so Express route params capture the full key.
+  const encodedKey = encodeURIComponent(ayahKey);
+  const response = await fetch(`${BASE_URL}/verses/by_key/${encodedKey}?${params}`);
   if (!response.ok) {
     throw new Error(`Failed to fetch verse ${ayahKey}`);
   }

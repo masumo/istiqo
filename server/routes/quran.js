@@ -120,19 +120,23 @@ router.get('/verses/by_chapter/:chapter', (req, res) =>
   proxyToContentApi(req, res, `/verses/by_chapter/${req.params.chapter}`)
 );
 
-/** GET /api/quran/verses/by_key/:ayahKey  (e.g. 1:1) */
-router.get('/verses/by_key/:ayahKey', (req, res) =>
-  proxyToContentApi(req, res, `/verses/by_key/${req.params.ayahKey}`)
-);
+/** GET /api/quran/verses/by_key/:ayahKey  (e.g. 1:1 sent as 1%3A1) */
+router.get('/verses/by_key/:ayahKey', (req, res) => {
+  // decodeURIComponent restores "114%3A4" → "114:4" for the upstream API
+  const ayahKey = decodeURIComponent(req.params.ayahKey);
+  proxyToContentApi(req, res, `/verses/by_key/${ayahKey}`);
+});
 
 /** GET /api/quran/recitations/:recitationId/by_ayah/:ayahKey */
-router.get('/recitations/:recitationId/by_ayah/:ayahKey', (req, res) =>
+router.get('/recitations/:recitationId/by_ayah/:ayahKey', (req, res) => {
+  // decodeURIComponent restores "114%3A4" → "114:4" for the upstream API
+  const ayahKey = decodeURIComponent(req.params.ayahKey);
   proxyToContentApi(
     req,
     res,
-    `/recitations/${req.params.recitationId}/by_ayah/${req.params.ayahKey}`
-  )
-);
+    `/recitations/${req.params.recitationId}/by_ayah/${ayahKey}`
+  );
+});
 
 /** Catch-all: forward any other /api/quran/* paths generically */
 router.get('/*path', (req, res) => proxyToContentApi(req, res, req.path));

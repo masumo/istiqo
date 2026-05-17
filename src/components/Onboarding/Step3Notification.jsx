@@ -1,23 +1,26 @@
 import React, { useState } from 'react';
-import { useUserStore } from '../../store/userStore';
-import { getTranslation } from '../../utils/i18n';
-import { Bell } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { Bell, CheckCircle2 } from 'lucide-react';
+import { useUserStore, getUIString } from '../../store/userStore';
+
+const C = {
+  green: '#58CC02', greenDark: '#46A302',
+  teal: '#37607D', tealDark: '#2A4B63',
+  bg: '#F6F3E6',
+  doneGreen: '#D7FFB1', doneBorder: '#218151',
+};
+
+const btn3d = 'border-2 border-b-[6px] rounded-2xl active:border-b-2 active:translate-y-[4px] transition-all select-none';
 
 const Step3Notification = ({ onComplete }) => {
   const { preferredLanguage, notificationTime, setNotificationTime, completeOnboarding } = useUserStore();
-  const t = (key) => getTranslation(preferredLanguage, key);
-  const [permissionRequested, setPermissionRequested] = useState(false);
+  const s = (k) => getUIString(preferredLanguage, k);
+  const [permissionGranted, setPermissionGranted] = useState(false);
 
   const handleRequestPermission = async () => {
-    if ('Notification' in window) {
-      const permission = await Notification.requestPermission();
-      setPermissionRequested(true);
-      if (permission === 'granted') {
-        console.log('Notification permission granted.');
-      }
-    } else {
-      alert('Your browser does not support notifications.');
-    }
+    if (!('Notification' in window)) return;
+    const permission = await Notification.requestPermission();
+    setPermissionGranted(permission === 'granted');
   };
 
   const handleComplete = () => {
@@ -26,42 +29,66 @@ const Step3Notification = ({ onComplete }) => {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center p-8 space-y-8 h-full">
-      <h2 className="text-3xl font-bold text-slate-800 text-center">{t('notification')}</h2>
-      
-      <div className="flex flex-col w-full max-w-md space-y-8 items-center bg-white p-8 rounded-3xl border-4 border-slate-100 shadow-sm">
-        <div className="bg-emerald-100 p-4 rounded-full">
-          <Bell className="w-12 h-12 text-emerald-600" />
+    <div className="w-full flex flex-col gap-5">
+      {/* Card */}
+      <div className="w-full bg-white rounded-3xl border-2 border-b-[6px] overflow-hidden p-6 flex flex-col gap-5" style={{ borderColor: C.tealDark }}>
+        {/* Icon + title */}
+        <div className="flex flex-col items-center gap-3">
+          <div className="w-14 h-14 rounded-2xl flex items-center justify-center" style={{ backgroundColor: C.doneGreen }}>
+            <Bell className="w-7 h-7" style={{ color: C.doneBorder }} />
+          </div>
+          <div className="text-center">
+            <h2 className="text-xl font-black text-slate-800">{s('notification')}</h2>
+            <p className="text-xs font-medium text-slate-400 mt-0.5">
+              {preferredLanguage === 'en' ? 'Set your daily reminder' : 'Atur pengingat harian kamu'}
+            </p>
+          </div>
         </div>
-        
-        <div className="flex flex-col items-center space-y-4 w-full">
-          <label className="text-xl font-bold text-slate-700">{t('notificationTime')}</label>
+
+        {/* Time label */}
+        <div className="flex flex-col gap-2">
+          <span className="text-xs font-black uppercase tracking-widest text-slate-400 px-1">
+            {s('notificationTime')}
+          </span>
           <input
             type="time"
             value={notificationTime}
             onChange={(e) => setNotificationTime(e.target.value)}
-            className="text-4xl font-bold text-emerald-600 bg-emerald-50 border-4 border-emerald-200 p-4 rounded-2xl w-full text-center focus:outline-none focus:border-emerald-500"
+            className={`w-full text-2xl font-black text-center rounded-2xl border-2 border-b-[6px] px-4 py-3 focus:outline-none transition-all`}
+            style={{ color: C.teal, borderColor: C.tealDark, backgroundColor: '#F6F3E6' }}
           />
         </div>
 
-        <button
+        {/* Notification permission button */}
+        <motion.button
+          whileTap={{ scale: 0.97 }}
           onClick={handleRequestPermission}
-          className={`w-full py-4 px-6 rounded-2xl font-bold transition-all border-4 ${
-            permissionRequested 
-              ? 'bg-slate-50 border-slate-200 text-slate-400' 
-              : 'bg-white border-slate-200 text-slate-700 hover:border-emerald-300 hover:bg-emerald-50'
+          disabled={permissionGranted}
+          className={`w-full flex items-center justify-center gap-2 py-3.5 font-black text-sm rounded-2xl border-2 border-b-[6px] transition-all ${
+            permissionGranted ? 'opacity-60 cursor-default' : ''
           }`}
+          style={
+            permissionGranted
+              ? { backgroundColor: C.doneGreen, borderColor: C.doneBorder, color: C.doneBorder }
+              : { backgroundColor: '#fff', borderColor: '#E5E7EB', color: C.teal }
+          }
         >
-          {t('notificationsPermission')}
-        </button>
+          {permissionGranted
+            ? <><CheckCircle2 className="w-4 h-4" /> {preferredLanguage === 'en' ? 'Notifications enabled' : 'Notifikasi diizinkan'}</>
+            : <><Bell className="w-4 h-4" /> {s('notificationsPermission')}</>
+          }
+        </motion.button>
       </div>
 
-      <button
+      {/* CTA */}
+      <motion.button
+        whileTap={{ scale: 0.97 }}
         onClick={handleComplete}
-        className="w-full max-w-md py-4 bg-emerald-600 text-white rounded-2xl font-bold text-xl hover:bg-emerald-700 transition-colors shadow-lg shadow-emerald-200"
+        className={`w-full py-4 font-black text-base text-white ${btn3d}`}
+        style={{ backgroundColor: C.green, borderColor: C.greenDark }}
       >
-        {t('startJourney')}
-      </button>
+        {s('startJourney')} →
+      </motion.button>
     </div>
   );
 };

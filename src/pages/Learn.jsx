@@ -14,11 +14,20 @@ import { useDailyGoalSync } from '../hooks/useDailyGoalSync';
 import { MNEMONICS } from '../utils/mnemonics';
 
 const SECTION_NAMES = {
-  1: 'Pondasi Utama',
-  2: 'Penghubung Utama',
-  3: 'Penguasaan Konteks',
-  4: 'Kisah Para Nabi',
-  5: 'Nuansa Lanjutan',
+  id: {
+    1: 'Pondasi Utama',
+    2: 'Penghubung Utama',
+    3: 'Penguasaan Konteks',
+    4: 'Kisah Para Nabi',
+    5: 'Nuansa Lanjutan',
+  },
+  en: {
+    1: 'Core Foundation',
+    2: 'Key Connectors',
+    3: 'Context Mastery',
+    4: 'Stories of Prophets',
+    5: 'Advanced Nuances',
+  },
 };
 
 // ── Utilities ────────────────────────────────────────────────────────────────
@@ -124,7 +133,7 @@ const Learn = () => {
     retry: 2,
   });
 
-  const verse = getVersePayload(verseData);
+  const verse = useMemo(() => getVersePayload(verseData), [verseData]);
 
   const wordCardData = useMemo(() => {
     if (!currentWord) return null;
@@ -143,7 +152,19 @@ const Learn = () => {
     }
 
     const verseFullText = verse?.text_uthmani || '';
-    const rawTranslation = (verse?.translations && verse.translations[0]?.text) || '';
+
+    // Extract translation text — verse.translations[0] is always the language-
+    // specific translation requested (id=33 for Indonesian, id=131 for English).
+    // Guard against stale cache returning the wrong language by also checking
+    // all known field variants on the verse object itself.
+    const rawTranslation =
+      (verse?.translations && verse.translations[0]?.text) ||
+      verse?.translation_text ||
+      verse?.translation ||
+      verse?.en_translation ||
+      verse?.english_translation ||
+      verse?.id_translation ||
+      '';
     const cleanTranslation = stripHtml(rawTranslation);
 
     // Try to find the target word in the verse for a focused snippet.
@@ -157,24 +178,24 @@ const Learn = () => {
     if (verseFullText) {
       if (found) {
         verseArabic = segment;
-        // Trim translation to roughly proportional length (first 15 words)
         if (cleanTranslation) {
           const tranWords = cleanTranslation.split(/\s+/);
-          verseTranslation = tranWords.length > 15
-            ? tranWords.slice(0, 15).join(' ') + '…'
+          // English translations are wordier — allow up to 20 words
+          const limit = preferredLanguage === 'en' ? 20 : 15;
+          verseTranslation = tranWords.length > limit
+            ? tranWords.slice(0, limit).join(' ') + '…'
             : cleanTranslation;
         }
       } else {
-        // Fallback: show first 10 Arabic words + ellipsis
         const allWords = verseFullText.split(/\s+/);
         verseArabic = allWords.length > 10
           ? allWords.slice(0, 10).join(' ') + ' …'
           : verseFullText;
-        // Show first 12 translation words
         if (cleanTranslation) {
           const tranWords = cleanTranslation.split(/\s+/);
-          verseTranslation = tranWords.length > 12
-            ? tranWords.slice(0, 12).join(' ') + '…'
+          const limit = preferredLanguage === 'en' ? 16 : 12;
+          verseTranslation = tranWords.length > limit
+            ? tranWords.slice(0, limit).join(' ') + '…'
             : cleanTranslation;
         }
       }
@@ -188,7 +209,14 @@ const Learn = () => {
       transliteration: currentWord.transliteration || '',
       translation:     currentWord.translation?.[preferredLanguage] || currentWord.translation?.id || currentWord.translation?.en || '',
       verseArabic:     verseArabic,
-      verseTranslation: verseTranslation,
+      // Pass the full cleaned translation string regardless of language —
+      // WordCard will render it directly. Never pass empty string; use null so
+      // the fallback chain in WordCard can distinguish "not yet loaded" from "loaded empty".
+      verseTranslation: cleanTranslation || null,
+      // Extra verse translation fields for WordCard's defensive fallback
+      en_translation:       preferredLanguage === 'en' ? (cleanTranslation || null) : null,
+      id_translation:       preferredLanguage === 'id' ? (cleanTranslation || null) : null,
+      preferredLanguage,
       surahName:       `Surah ${surahNumber}`,
       ayahNumber:      Number(ayahNumber || 0),
       audioUrl,
@@ -274,7 +302,7 @@ const Learn = () => {
     );
   }
 
-  const sectionName = SECTION_NAMES[currentUnit.section] || `Bagian ${currentUnit.section}`;
+  const sectionName = (SECTION_NAMES[preferredLanguage] || SECTION_NAMES.id)[currentUnit.section] || `Section ${currentUnit.section}`;
 
   // ── Phase: quiz ───────────────────────────────────────────────────────────
   if (phase === 'quiz') {

@@ -1,54 +1,89 @@
 import React from 'react';
-import { useUserStore } from '../../store/userStore';
+import { motion } from 'framer-motion';
+import { Check } from 'lucide-react';
+import { useUserStore, getUIString } from '../../store/userStore';
 import { useDailyGoalSync } from '../../hooks/useDailyGoalSync';
-import { getTranslation } from '../../utils/i18n';
-import { CheckCircle2 } from 'lucide-react';
+
+const C = {
+  green: '#58CC02', greenDark: '#46A302',
+  teal: '#37607D', tealDark: '#2A4B63',
+  bg: '#F6F3E6',
+  doneGreen: '#D7FFB1', doneBorder: '#218151',
+};
+
+const btn3d = 'border-2 border-b-[6px] rounded-2xl active:border-b-2 active:translate-y-[4px] transition-all select-none';
+
+const GOALS = [
+  { value: 5,  icon: '🌱', labelKey: 'goalCasual',  wordsPerDay: '5' },
+  { value: 10, icon: '📖', labelKey: 'goalSerious', wordsPerDay: '10' },
+  { value: 15, icon: '🔥', labelKey: 'goalIntense', wordsPerDay: '15' },
+];
 
 const Step2Goal = ({ onNext }) => {
   const { preferredLanguage, dailyGoal, setDailyGoal } = useUserStore();
   const { setDailyGoalOnServer } = useDailyGoalSync();
-  const t = (key) => getTranslation(preferredLanguage, key);
+  const s = (k) => getUIString(preferredLanguage, k);
 
-  const goals = [
-    { value: 5, label: t('goals.casual.label'), color: 'bg-emerald-100 border-emerald-500', desc: t('goals.casual.description') },
-    { value: 10, label: t('goals.serious.label'), color: 'bg-blue-100 border-blue-500', desc: t('goals.serious.description') },
-    { value: 15, label: t('goals.intense.label'), color: 'bg-orange-100 border-orange-500', desc: t('goals.intense.description') },
-  ];
-
-  const handleGoalSelect = async (goalValue) => {
-    setDailyGoal(goalValue);
-    // Sync to server if API is enabled
-    await setDailyGoalOnServer(goalValue);
+  const handleSelect = async (value) => {
+    setDailyGoal(value);
+    await setDailyGoalOnServer(value);
   };
 
   return (
-    <div className="flex flex-col items-center justify-center p-8 space-y-8 h-full">
-      <h2 className="text-3xl font-bold text-slate-800 text-center">{t('dailyGoal')}</h2>
-      <div className="flex flex-col w-full max-w-md space-y-4">
-        {goals.map((goal) => (
-          <button
-            key={goal.value}
-            onClick={() => handleGoalSelect(goal.value)}
-            className={`p-6 rounded-2xl border-4 transition-all flex items-center justify-between shadow-sm ${
-              dailyGoal === goal.value
-                ? `${goal.color} text-slate-900`
-                : 'bg-white border-slate-200 text-slate-600 hover:border-slate-300'
-            }`}
-          >
-            <div className="flex flex-col items-start">
-              <span className="text-xl font-bold">{goal.label}</span>
-              <span className="text-sm opacity-80">{goal.value} {t('wordsPerDay')}</span>
-            </div>
-            {dailyGoal === goal.value && <CheckCircle2 className="w-8 h-8 text-slate-800" />}
-          </button>
-        ))}
+    <div className="w-full flex flex-col gap-5">
+      {/* Card */}
+      <div className="w-full bg-white rounded-3xl border-2 border-b-[6px] overflow-hidden p-6 flex flex-col gap-5" style={{ borderColor: C.tealDark }}>
+        <div className="text-center">
+          <h2 className="text-xl font-black text-slate-800">{s('dailyGoal')}</h2>
+          <p className="text-xs font-medium text-slate-400 mt-1">
+            {preferredLanguage === 'en' ? 'How many words per day?' : 'Berapa kata per hari?'}
+          </p>
+        </div>
+
+        <div className="flex flex-col gap-3">
+          {GOALS.map((goal) => {
+            const isSelected = dailyGoal === goal.value;
+            const goalData = s(goal.labelKey);
+            const label = typeof goalData === 'object' ? goalData.label : goal.labelKey;
+            return (
+              <motion.button
+                key={goal.value}
+                whileTap={{ scale: 0.98 }}
+                onClick={() => handleSelect(goal.value)}
+                className={`w-full flex items-center justify-between px-5 py-4 rounded-2xl border-2 transition-all ${btn3d}`}
+                style={
+                  isSelected
+                    ? { backgroundColor: C.doneGreen, borderColor: C.doneBorder, borderBottomWidth: '6px' }
+                    : { backgroundColor: '#fff', borderColor: '#E5E7EB', borderBottomWidth: '6px' }
+                }
+              >
+                <div className="flex items-center gap-3">
+                  <span className="text-2xl">{goal.icon}</span>
+                  <div className="text-left">
+                    <div className={`text-sm font-black ${isSelected ? 'text-emerald-800' : 'text-slate-700'}`}>
+                      {label}
+                    </div>
+                    <div className={`text-xs font-medium ${isSelected ? 'text-emerald-600' : 'text-slate-400'}`}>
+                      {goal.wordsPerDay} {s('wordsPerDay')}
+                    </div>
+                  </div>
+                </div>
+                {isSelected && <Check className="w-5 h-5" style={{ color: C.doneBorder }} strokeWidth={3} />}
+              </motion.button>
+            );
+          })}
+        </div>
       </div>
-      <button
+
+      {/* CTA */}
+      <motion.button
+        whileTap={{ scale: 0.97 }}
         onClick={onNext}
-        className="w-full max-w-md py-4 bg-emerald-600 text-white rounded-2xl font-bold text-xl hover:bg-emerald-700 transition-colors shadow-lg shadow-emerald-200"
+        className={`w-full py-4 font-black text-base text-white ${btn3d}`}
+        style={{ backgroundColor: C.green, borderColor: C.greenDark }}
       >
-        {t('continue')}
-      </button>
+        {s('continueLabel')} →
+      </motion.button>
     </div>
   );
 };
