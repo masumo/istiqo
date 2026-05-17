@@ -3,6 +3,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Bookmark, Volume2, VolumeX, ChevronRight, ChevronLeft, Star, Lightbulb, AlertCircle } from 'lucide-react';
 import { Howl } from 'howler';
 import { getTranslation } from '../../utils/i18n';
+import { isSoundEnabled, stopAllSFX } from '../../utils/sfx';
+import { useUserStore } from '../../store/userStore';
 
 // ── Section theming ───────────────────────────────────────────────────────────
 const SECTION_LABELS = {
@@ -22,11 +24,10 @@ const SECTION_COLORS = {
 };
 
 // ── Helper: highlight target word in Arabic text ──────────────────────────────
-const highlightVerse = (verse, target, colors) => {
+const highlightVerse = (verse, target) => {
   if (!verse || !target) return verse;
   const escapeRegex = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  const stripH = (s) =>
-    s.replace(/[\u064B-\u065F\u0670\u06D6-\u06ED\u0640]/g, '');
+  const stripH = (s) => s.replace(/[\u064B-\u065F\u0670\u06D6-\u06ED\u0640]/g, '');
   const base = stripH(target).trim();
   if (!base) return verse;
 
@@ -39,10 +40,7 @@ const highlightVerse = (verse, target, colors) => {
   };
 
   const diacritics = '[\\u064B-\\u065F\\u0670\\u06D6-\\u06ED\\u0640]*';
-  const pattern = base
-    .split('')
-    .map((ch) => `${charClass(ch)}${diacritics}`)
-    .join('');
+  const pattern = base.split('').map((ch) => `${charClass(ch)}${diacritics}`).join('');
   const splitRegex = new RegExp(`(${pattern})`, 'gu');
   const matchRegex = new RegExp(`^${pattern}$`, 'u');
   const parts = verse.split(splitRegex);
@@ -56,29 +54,29 @@ const highlightVerse = (verse, target, colors) => {
       >
         {part}
       </span>
-    ) : (
-      part
-    )
+    ) : part
   );
 };
 
 // ── WordCard ──────────────────────────────────────────────────────────────────
 const WordCard = ({ wordData, onNext, onPrev, preferredLanguage = 'id' }) => {
-  const [isMuted, setIsMuted] = useState(false);
+  // Derive mute state from global store so header toggle is reflected instantly
+  const isAudioMuted = useUserStore((s) => s.isAudioMuted);
+
   const [isBookmarked, setIsBookmarked] = useState(false);
   const [showMnemonic, setShowMnemonic] = useState(false);
-  const [audioError, setAudioError] = useState(false);
-  const soundRef = useRef(null);
-  const hasPlayedRef = useRef(false);
+  const [audioError, setAudioError]     = useState(false);
+  const soundRef      = useRef(null);
+  const hasPlayedRef  = useRef(false);
 
   const sectionMeta = SECTION_LABELS[wordData.section] || SECTION_LABELS[1];
-  const colors = SECTION_COLORS[sectionMeta.color];
-  const tr = (key) => getTranslation(preferredLanguage, key);
+  const colors      = SECTION_COLORS[sectionMeta.color];
+  const tr          = (key) => getTranslation(preferredLanguage, key);
 
   // Build Howl and auto-play once per card
   useEffect(() => {
     hasPlayedRef.current = false;
-    setShowMnemonic(false); // reset mnemonic panel on new card
+    setShowMnemonic(false);
     setAudioError(false);
 
     if (soundRef.current) {
@@ -90,20 +88,14 @@ const WordCard = ({ wordData, onNext, onPrev, preferredLanguage = 'id' }) => {
       const sound = new Howl({
         src: [wordData.audioUrl],
         html5: true,
-        mute: isMuted,
-        onloaderror: (id, error) => {
-          console.error('Audio load error:', error);
-          setAudioError(true);
-        },
-        onplayerror: (id, error) => {
-          console.error('Audio play error:', error);
-          setAudioError(true);
-        },
+        mute: isAudioMuted,
+        onloaderror: (_id, err) => { console.error('Audio load error:', err); setAudioError(true); },
+        onplayerror: (_id, err) => { console.error('Audio play error:', err); setAudioError(true); },
       });
       soundRef.current = sound;
 
       const tId = setTimeout(() => {
-        if (!hasPlayedRef.current && !isMuted) {
+        if (!hasPlayedRef.current && !isAudioMuted && isSoundEnabled()) {
           sound.play();
           hasPlayedRef.current = true;
         }
@@ -118,18 +110,30 @@ const WordCard = ({ wordData, onNext, onPrev, preferredLanguage = 'id' }) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [wordData.audioUrl]);
 
-  // Sync mute without re-triggering play
+  // Sync mute state to Howl whenever global toggle changes; stop immediately if muted
   useEffect(() => {
-    soundRef.current?.mute(isMuted);
-  }, [isMuted]);
+    if (!soundRef.current) return;
+    soundRef.current.mute(isAudioMuted);
+    if (isAudioMuted && soundRef.current.playing()) {
+      soundRef.current.stop();
+    }
+  }, [isAudioMuted]);
 
   const handleManualPlay = () => {
+    if (isAudioMuted || !isSoundEnabled()) return;
     if (!soundRef.current) return;
     if (soundRef.current.playing()) soundRef.current.stop();
-    soundRef.current.mute(isMuted);
+    soundRef.current.mute(false);
     soundRef.current.play();
     hasPlayedRef.current = true;
   };
+
+  // Resolve verse translation from multiple possible field names
+  const verseTranslationText =
+    wordData.verseTranslation ||
+    wordData.translation_text ||
+    wordData.verse_translation ||
+    null;
 
   return (
     <motion.div
@@ -137,16 +141,17 @@ const WordCard = ({ wordData, onNext, onPrev, preferredLanguage = 'id' }) => {
       animate={{ opacity: 1, scale: 1, y: 0 }}
       exit={{ opacity: 0, scale: 0.95, y: -10 }}
       transition={{ type: 'spring', stiffness: 260, damping: 28 }}
-      className="w-full max-w-lg bg-white rounded-[2.5rem] shadow-2xl overflow-hidden border-4 border-slate-50 relative"
+      className="w-full max-w-lg bg-white rounded-[2rem] shadow-2xl overflow-hidden border-4 border-slate-50 relative flex flex-col"
     >
       {/* ─ Top Controls ──────────────────────────────────────────────────── */}
-      <div className="flex justify-between items-center p-5 absolute top-0 left-0 right-0 z-10">
+      <div className="flex justify-between items-center px-4 py-3 flex-none">
         {/* Rank + Section Badge */}
         <div className="flex items-center gap-2">
-          <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-white text-xs font-bold ${colors.bg} shadow-sm`}>
-            <Star className="w-3 h-3 fill-white" />#{wordData.rank}
+          <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-white text-xs font-bold ${colors.bg} shadow-sm`}>
+            <Star className="w-3 h-3 fill-white" />
+            <span className="text-xs sm:text-sm font-medium">#{wordData.rank}</span>
           </div>
-          <div className={`px-3 py-1.5 rounded-full text-xs font-bold ${colors.light} ${colors.text} border ${colors.border}`}>
+          <div className={`px-2.5 py-1 rounded-full text-xs sm:text-sm font-medium ${colors.light} ${colors.text} border ${colors.border}`}>
             {sectionMeta[preferredLanguage] || sectionMeta.en}
           </div>
         </div>
@@ -154,77 +159,73 @@ const WordCard = ({ wordData, onNext, onPrev, preferredLanguage = 'id' }) => {
         {/* Action buttons */}
         <div className="flex gap-2">
           <button
-            onClick={() => setIsMuted((m) => !m)}
-            className="p-2.5 bg-slate-100/80 backdrop-blur-sm rounded-full text-slate-600 hover:bg-slate-200 transition-all"
+            onClick={handleManualPlay}
+            className="p-2 bg-slate-100/80 backdrop-blur-sm rounded-full text-slate-600 hover:bg-slate-200 transition-all"
           >
-            {isMuted ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
+            {isAudioMuted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
           </button>
           <button
             onClick={() => setIsBookmarked((b) => !b)}
-            className={`p-2.5 rounded-full transition-all ${
-              isBookmarked
-                ? `${colors.bg} text-white`
-                : 'bg-slate-100/80 backdrop-blur-sm text-slate-600 hover:bg-slate-200'
+            className={`p-2 rounded-full transition-all ${
+              isBookmarked ? `${colors.bg} text-white` : 'bg-slate-100/80 backdrop-blur-sm text-slate-600 hover:bg-slate-200'
             }`}
           >
-            <Bookmark className="w-5 h-5" fill={isBookmarked ? 'currentColor' : 'none'} />
+            <Bookmark className="w-4 h-4" fill={isBookmarked ? 'currentColor' : 'none'} />
           </button>
         </div>
       </div>
 
-      {/* ─ Main Content ──────────────────────────────────────────────────── */}
-      <div className="p-8 pt-24 flex flex-col items-center space-y-6 text-center">
+      {/* ─ Scrollable Main Content ────────────────────────────────────────── */}
+      <div className="flex-1 min-h-0 overflow-y-auto px-5 pb-3 flex flex-col items-center gap-3 text-center">
 
-        {/* Audio Error Message */}
+        {/* Audio Error */}
         {(audioError || wordData.audioError) && (
-          <div className="w-full bg-orange-50 border-2 border-orange-200 rounded-2xl px-4 py-3 flex items-center gap-2">
-            <AlertCircle className="w-5 h-5 text-orange-600 flex-shrink-0" />
-            <p className="text-sm text-orange-700 font-medium">
+          <div className="w-full bg-orange-50 border-2 border-orange-200 rounded-2xl px-3 py-2 flex items-center gap-2">
+            <AlertCircle className="w-4 h-4 text-orange-600 flex-shrink-0" />
+            <p className="text-xs text-orange-700 font-medium">
               {wordData.audioError || tr('audio_error')}
             </p>
           </div>
         )}
 
-        {/* Arabic word — tap to replay */}
-        <div className="space-y-2">
-          <button
-            onClick={handleManualPlay}
-            className="group focus:outline-none"
-            title="Tap to replay"
-          >
+        {/* Arabic word */}
+        <div className="space-y-1">
+          <button onClick={handleManualPlay} className="group focus:outline-none">
             <h2
-              className="text-8xl font-amiri font-bold text-slate-800 leading-relaxed group-hover:opacity-75 transition-opacity"
+              className="text-4xl sm:text-5xl font-bold text-slate-800 leading-relaxed group-hover:opacity-75 transition-opacity"
+              style={{ fontFamily: 'Amiri, serif' }}
               dir="rtl"
             >
               {wordData.arabic}
             </h2>
           </button>
           {wordData.transliteration && (
-            <p className="text-xl text-slate-400 font-medium italic tracking-wide">
+            <p className="text-base sm:text-lg text-slate-400 font-medium italic tracking-wide">
               {wordData.transliteration}
             </p>
           )}
         </div>
 
         {/* Translation */}
-        <div className={`${colors.light} px-6 py-4 rounded-3xl border-2 ${colors.border} w-full`}>
-          <p className={`text-2xl font-bold ${colors.text}`}>
-            {wordData.translation || <span className="text-slate-400 italic text-base">—</span>}
+        <div className={`${colors.light} px-4 py-3 rounded-2xl border-2 ${colors.border} w-full`}>
+          <p className={`text-lg sm:text-xl font-semibold ${colors.text}`}>
+            {wordData.translation || <span className="text-slate-400 italic text-sm">—</span>}
           </p>
         </div>
 
-        {/* Context Verse — only shown if word was found in the verse */}
+        {/* Context Verse */}
         {wordData.verseArabic ? (
-          <div className="w-full p-5 bg-slate-50 rounded-3xl border-2 border-slate-100">
-            <p className="text-2xl font-amiri text-slate-700 leading-loose" dir="rtl">
-              {highlightVerse(wordData.verseArabic, wordData.arabic, colors)}
+          <div className="w-full p-4 bg-slate-50 rounded-2xl border-2 border-slate-100">
+            <p className="text-xl sm:text-2xl leading-loose text-slate-700" style={{ fontFamily: 'Amiri, serif' }} dir="rtl">
+              {highlightVerse(wordData.verseArabic, wordData.arabic)}
             </p>
-            {wordData.verseTranslation && (
-              <div className="mt-3 pt-3 border-t border-slate-200">
-                <p className="text-sm text-slate-500 leading-relaxed italic">
-                  &ldquo;{wordData.verseTranslation}&rdquo;
+            {/* Arti Ayat — always rendered when data is present */}
+            {verseTranslationText && (
+              <div className="mt-2 pt-2 border-t border-slate-200">
+                <p className="text-sm sm:text-base text-slate-600 leading-relaxed italic">
+                  &ldquo;{verseTranslationText}&rdquo;
                 </p>
-                <p className="text-xs font-bold text-slate-400 mt-1.5 uppercase tracking-widest">
+                <p className="text-xs sm:text-sm font-medium text-slate-400 mt-1 uppercase tracking-widest">
                   {wordData.surahName} : {wordData.ayahNumber}
                 </p>
               </div>
@@ -232,12 +233,12 @@ const WordCard = ({ wordData, onNext, onPrev, preferredLanguage = 'id' }) => {
           </div>
         ) : null}
 
-        {/* ─ Mnemonic Section ────────────────────────────────────────────── */}
+        {/* Mnemonic */}
         {wordData.mnemonic && (
           <div className="w-full">
             <button
               onClick={() => setShowMnemonic((s) => !s)}
-              className={`w-full flex items-center justify-between px-5 py-3 rounded-2xl border-2 transition-all ${
+              className={`w-full flex items-center justify-between px-4 py-2.5 rounded-2xl border-2 transition-all ${
                 showMnemonic
                   ? `${colors.mnemBg} ${colors.mnemBorder}`
                   : 'bg-slate-50 border-slate-100 hover:bg-slate-100'
@@ -245,14 +246,14 @@ const WordCard = ({ wordData, onNext, onPrev, preferredLanguage = 'id' }) => {
             >
               <div className="flex items-center gap-2">
                 <Lightbulb
-                  className={`w-5 h-5 ${showMnemonic ? colors.text : 'text-slate-400'}`}
+                  className={`w-4 h-4 ${showMnemonic ? colors.text : 'text-slate-400'}`}
                   fill={showMnemonic ? 'currentColor' : 'none'}
                 />
-                <span className={`text-sm font-bold ${showMnemonic ? colors.text : 'text-slate-500'}`}>
+                <span className={`text-sm sm:text-base font-bold ${showMnemonic ? colors.text : 'text-slate-500'}`}>
                   {showMnemonic ? tr('mnemonic.hide') : tr('mnemonic.show')}
                 </span>
               </div>
-              <span className="text-lg">{wordData.mnemonic.emoji}</span>
+              <span className="text-base">{wordData.mnemonic.emoji}</span>
             </button>
 
             <AnimatePresence>
@@ -265,18 +266,16 @@ const WordCard = ({ wordData, onNext, onPrev, preferredLanguage = 'id' }) => {
                   className="overflow-hidden"
                 >
                   <div className={`mt-2 rounded-2xl border-2 ${colors.mnemBg} ${colors.mnemBorder} overflow-hidden`}>
-                    {/* Mnemonic image if available */}
                     {wordData.mnemonic.image && (
                       <img
                         src={wordData.mnemonic.image}
                         alt={`Mnemonic for ${wordData.arabic}`}
-                        className="w-full h-44 object-cover"
+                        className="w-full h-36 object-cover"
                         onError={(e) => { e.target.style.display = 'none'; }}
                       />
                     )}
-                    {/* Mnemonic text */}
-                    <div className="px-5 py-4">
-                      <p className={`text-sm leading-relaxed font-medium ${colors.mnemText}`}>
+                    <div className="px-4 py-3">
+                      <p className={`text-sm sm:text-base leading-relaxed font-medium ${colors.mnemText}`}>
                         {wordData.mnemonic[preferredLanguage] || wordData.mnemonic.text}
                       </p>
                     </div>
@@ -289,20 +288,20 @@ const WordCard = ({ wordData, onNext, onPrev, preferredLanguage = 'id' }) => {
       </div>
 
       {/* ─ Navigation Footer ─────────────────────────────────────────────── */}
-      <div className="flex border-t-4 border-slate-50 h-20">
+      <div className="flex border-t-4 border-slate-50 h-16 flex-none">
         <button
           onClick={onPrev}
-          className="flex-1 flex items-center justify-center gap-2 text-slate-400 hover:text-slate-700 hover:bg-slate-50 transition-all border-r-4 border-slate-50 font-bold uppercase tracking-widest text-sm"
+          className="flex-1 flex items-center justify-center gap-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-50 transition-all border-r-4 border-slate-50 font-bold uppercase tracking-widest text-xs sm:text-sm"
         >
-          <ChevronLeft className="w-5 h-5" />
+          <ChevronLeft className="w-4 h-4" />
           {tr('navigation.back')}
         </button>
         <button
           onClick={onNext}
-          className={`flex-1 flex items-center justify-center gap-2 ${colors.text} hover:opacity-80 transition-all font-bold uppercase tracking-widest text-sm`}
+          className={`flex-1 flex items-center justify-center gap-1.5 ${colors.text} hover:opacity-80 transition-all font-bold uppercase tracking-widest text-xs sm:text-sm`}
         >
           {tr('navigation.next')}
-          <ChevronRight className="w-5 h-5" />
+          <ChevronRight className="w-4 h-4" />
         </button>
       </div>
     </motion.div>

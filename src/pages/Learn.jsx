@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useQuery } from '@tanstack/react-query';
 import { ArrowLeft, Loader2, Flame } from 'lucide-react';
@@ -84,7 +84,13 @@ const Learn = () => {
   const {
     preferredLanguage,
     recordUnitCompletion,
+    isAudioMuted,
   } = useUserStore();
+
+  // Keep localStorage flag in sync with store so all audio consumers read it
+  useEffect(() => {
+    localStorage.setItem('istiqo_sound_enabled', isAudioMuted ? 'false' : 'true');
+  }, [isAudioMuted]);
 
   const { currentSessionWords, currentUnit, setView, finishUnit } = useVocabCurriculum();
   const recordActivity  = useRecordActivity();
@@ -273,9 +279,9 @@ const Learn = () => {
   // ── Phase: quiz ───────────────────────────────────────────────────────────
   if (phase === 'quiz') {
     return (
-      <div className="min-h-screen flex flex-col items-center py-8 px-4" style={{ backgroundColor: '#F6F3E6' }}>
+      <div className="fixed inset-0 h-screen h-[100dvh] overflow-hidden flex flex-col" style={{ backgroundColor: '#F6F3E6' }}>
         {/* Header */}
-        <div className="w-full max-w-lg flex items-center justify-between mb-6">
+        <div className="w-full max-w-lg mx-auto flex items-center justify-between px-4 pt-4 pb-2 flex-shrink-0">
           <button
             onClick={() => setPhase('cards')}
             className="p-3 rounded-2xl bg-white border border-slate-200 hover:bg-slate-50 shadow-sm"
@@ -289,20 +295,23 @@ const Learn = () => {
         </div>
 
         {/* Full progress bar */}
-        <div className="w-full max-w-lg h-3 bg-slate-200 rounded-full overflow-hidden mb-8">
+        <div className="w-full max-w-lg mx-auto h-3 bg-slate-200 rounded-full overflow-hidden px-4 flex-shrink-0">
           <div className="h-full bg-amber-400 rounded-full w-full" />
         </div>
 
-        <Quiz
-          words={mappedQuizWords}
-          lessonIndex={lessonIndex}
-          totalLessons={totalLessons}
-          unitKey={unitKey}
-          onComplete={handleQuizComplete}
-          onContinue={handleQuizContinue}
-          lang={preferredLanguage}
-          exerciseType="auto"
-        />
+        {/* Scrollable quiz area */}
+        <div className="flex-1 min-h-0 overflow-y-auto w-full max-w-lg mx-auto px-4 py-4">
+          <Quiz
+            words={mappedQuizWords}
+            lessonIndex={lessonIndex}
+            totalLessons={totalLessons}
+            unitKey={unitKey}
+            onComplete={handleQuizComplete}
+            onContinue={handleQuizContinue}
+            lang={preferredLanguage}
+            exerciseType="auto"
+          />
+        </div>
       </div>
     );
   }
@@ -313,9 +322,9 @@ const Learn = () => {
   const headerProgress = ((currentIndex + 1) / sessionWords.length) * 100;
 
   return (
-    <div className="min-h-screen flex flex-col items-center py-8 px-4" style={{ backgroundColor: '#F6F3E6' }}>
+    <div className="fixed inset-0 h-screen h-[100dvh] overflow-hidden flex flex-col" style={{ backgroundColor: '#F6F3E6' }}>
       {/* Header */}
-      <div className="w-full max-w-lg flex items-center justify-between mb-6">
+      <div className="w-full max-w-lg mx-auto flex items-center justify-between px-4 pt-4 pb-2 flex-shrink-0">
         <button
           onClick={() => setView('home')}
           className="p-3 rounded-2xl bg-white border border-slate-100 shadow-sm hover:bg-slate-50"
@@ -335,7 +344,7 @@ const Learn = () => {
       </div>
 
       {/* Progress bar */}
-      <div className="w-full max-w-lg flex items-center gap-4 mb-8">
+      <div className="w-full max-w-lg mx-auto flex items-center gap-4 px-4 pb-2 flex-shrink-0">
         <div className="flex-1 h-3 bg-slate-200 rounded-full overflow-hidden">
           <motion.div
             className="h-full bg-emerald-500 rounded-full"
@@ -364,37 +373,39 @@ const Learn = () => {
         )}
       </AnimatePresence>
 
-      {/* Card */}
-      <AnimatePresence mode="wait">
-        <motion.div
-          key={currentIndex}
-          initial={{ opacity: 0, x: 70 }}
-          animate={{ opacity: 1, x: 0 }}
-          exit={{ opacity: 0, x: -70 }}
-          transition={{ type: 'spring', stiffness: 220, damping: 26 }}
-          className="w-full flex justify-center"
-        >
-          {isVerseLoading || isAudioLoading ? (
-            <div className="w-full max-w-lg bg-white rounded-[2.5rem] shadow-2xl border-4 border-slate-50 p-10 flex flex-col items-center justify-center gap-4">
-              <Loader2 className="w-10 h-10 text-emerald-500 animate-spin" />
-              <div className="text-slate-500 font-bold">
-                {isVerseLoading ? 'Memuat ayat...' : 'Memuat audio...'}
+      {/* Card — scrollable center area */}
+      <div className="flex-1 min-h-0 overflow-y-auto w-full max-w-lg mx-auto px-4 py-4 flex flex-col items-center justify-center">
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={currentIndex}
+            initial={{ opacity: 0, x: 70 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -70 }}
+            transition={{ type: 'spring', stiffness: 220, damping: 26 }}
+            className="w-full flex justify-center"
+          >
+            {isVerseLoading || isAudioLoading ? (
+              <div className="w-full max-w-lg bg-white rounded-[2.5rem] shadow-2xl border-4 border-slate-50 p-10 flex flex-col items-center justify-center gap-4">
+                <Loader2 className="w-10 h-10 text-emerald-500 animate-spin" />
+                <div className="text-slate-500 font-bold">
+                  {isVerseLoading ? 'Memuat ayat...' : 'Memuat audio...'}
+                </div>
               </div>
-            </div>
-          ) : wordCardData ? (
-            <WordCard
-              wordData={wordCardData}
-              onNext={handleNext}
-              onPrev={handlePrev}
-              preferredLanguage={preferredLanguage}
-            />
-          ) : (
-            <div className="w-full max-w-lg bg-white rounded-[2.5rem] shadow-2xl border-4 border-slate-50 p-10 flex items-center justify-center">
-              <Loader2 className="w-10 h-10 text-emerald-500 animate-spin" />
-            </div>
-          )}
-        </motion.div>
-      </AnimatePresence>
+            ) : wordCardData ? (
+              <WordCard
+                wordData={wordCardData}
+                onNext={handleNext}
+                onPrev={handlePrev}
+                preferredLanguage={preferredLanguage}
+              />
+            ) : (
+              <div className="w-full max-w-lg bg-white rounded-[2.5rem] shadow-2xl border-4 border-slate-50 p-10 flex items-center justify-center">
+                <Loader2 className="w-10 h-10 text-emerald-500 animate-spin" />
+              </div>
+            )}
+          </motion.div>
+        </AnimatePresence>
+      </div>
     </div>
   );
 };

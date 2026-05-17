@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
+import { stopAllSFX } from '../utils/sfx';
 
 // ─── Section / Unit / Lesson Data ────────────────────────────────────────────
 export const SECTIONS_DATA = [
@@ -273,7 +274,13 @@ export const useUserStore = create(
       completeOnboarding: () => set({ isOnboarded: true }),
       setAuthToken: (token) => set({ authToken: token }),
       setAllowUserApiCalls: (allow) => set({ allowUserApiCalls: allow }),
-      toggleAudio: () => set((state) => ({ isAudioMuted: !state.isAudioMuted })),
+      toggleAudio: () =>
+        set((state) => {
+          const next = !state.isAudioMuted;
+          localStorage.setItem('istiqo_sound_enabled', next ? 'false' : 'true');
+          if (next) stopAllSFX();
+          return { isAudioMuted: next };
+        }),
       
       setUser: (user) => set({ user, authStatus: 'authenticated' }),
       setGuestMode: () => set((state) => ({ 

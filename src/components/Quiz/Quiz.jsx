@@ -106,7 +106,7 @@ const MCQQuestion = ({ word, allWords, lang, onAnswer, isAudioMuted }) => {
           key={i}
           onClick={() => handleClick(option)}
           disabled={locked}
-          className={`w-full p-4 text-left font-bold text-base min-h-[56px] ${btn3d} ${
+          className={`w-full p-3 text-left font-bold text-sm sm:text-base min-h-[52px] ${btn3d} ${
             !locked ? 'bg-white text-slate-700 border-gray-200 hover:bg-slate-50 cursor-pointer' : 'cursor-default'
           }`}
           style={optionStyle(option)}
@@ -185,17 +185,17 @@ const MatchingPairs = ({ words, lang, onComplete, isAudioMuted }) => {
             <React.Fragment key={i}>
               <motion.button
                 onClick={() => handleLeft(li)} disabled={matched.has(li.pairId)}
-                className={`flex items-center justify-center p-3 text-center min-h-[110px] w-full border-2 border-b-[6px] rounded-2xl transition-all ${ls==='matched'?dimmed:ls==='idle'?'cursor-pointer hover:opacity-80 active:border-b-2 active:translate-y-[4px]':'cursor-pointer'} ${lBg} ${lTx} ${lBd}`}
+                className={`flex items-center justify-center p-2 text-center min-h-[90px] w-full border-2 border-b-[6px] rounded-2xl transition-all ${ls==='matched'?dimmed:ls==='idle'?'cursor-pointer hover:opacity-80 active:border-b-2 active:translate-y-[4px]':'cursor-pointer'} ${lBg} ${lTx} ${lBd}`}
                 animate={ls==='wrong'?{x:[0,-9,9,-6,6,0]}:{}} transition={{duration:0.4}}
               >
-                <span className="text-3xl font-bold leading-tight" style={{fontFamily:'Amiri, serif'}} dir="rtl">{li.text}</span>
+                <span className="text-2xl sm:text-3xl font-bold leading-tight" style={{fontFamily:'Amiri, serif'}} dir="rtl">{li.text}</span>
               </motion.button>
               <motion.button
                 onClick={() => handleRight(ri)} disabled={matched.has(ri.pairId)}
-                className={`flex items-center justify-center p-3 text-center min-h-[110px] w-full border-2 border-b-[6px] rounded-2xl transition-all ${rs==='matched'?dimmed:rs==='idle'?'cursor-pointer hover:opacity-80 active:border-b-2 active:translate-y-[4px]':'cursor-pointer'} ${rBg} ${rTx} ${rBd}`}
+                className={`flex items-center justify-center p-2 text-center min-h-[90px] w-full border-2 border-b-[6px] rounded-2xl transition-all ${rs==='matched'?dimmed:rs==='idle'?'cursor-pointer hover:opacity-80 active:border-b-2 active:translate-y-[4px]':'cursor-pointer'} ${rBg} ${rTx} ${rBd}`}
                 animate={rs==='wrong'?{x:[0,9,-9,6,-6,0]}:{}} transition={{duration:0.4}}
               >
-                <span className="text-sm font-bold leading-snug">{ri.text}</span>
+                <span className="text-xs sm:text-sm font-bold leading-snug">{ri.text}</span>
               </motion.button>
             </React.Fragment>
           );
@@ -210,11 +210,11 @@ const LessonBadge = ({ lessonIndex, totalLessons, qIdx, qTotal, lang }) => {
   const T = (k) => getTranslation(lang, k);
   return (
     <div className="w-full flex items-center justify-between px-1 mb-1">
-      <span className="text-xs font-black uppercase px-3 py-1 rounded-full border-2 border-b-4"
+      <span className="text-xs sm:text-sm font-medium uppercase px-3 py-1 rounded-full border-2 border-b-4"
         style={{backgroundColor:C.doneGreen, borderColor:C.doneBorder, color:C.doneBorder}}>
         {T('lesson.label')} {lessonIndex+1} {T('lesson.of')} {totalLessons}
       </span>
-      <span className="text-xs font-bold text-slate-400">{qIdx+1} / {qTotal}</span>
+      <span className="text-xs sm:text-sm font-medium text-slate-400">{qIdx+1} / {qTotal}</span>
     </div>
   );
 };
@@ -229,7 +229,7 @@ const TransitionScreen = ({ lang, wordsCount, onStartQuiz }) => {
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -30 }}
       transition={{ duration: 0.45, type: 'spring', stiffness: 180 }}
-      className="w-full min-h-screen flex flex-col items-center justify-center px-6 py-10"
+      className="w-full flex flex-col items-center justify-center px-6 py-10"
       style={{ backgroundColor: C.bg }}
     >
       <div className="w-full max-w-sm flex flex-col items-center gap-6">
@@ -446,7 +446,7 @@ const Quiz = ({
     const nextLabel = mcqAnswered ? (isCorrect ? T('quiz.continue') : T('gotIt')) : '';
 
     return (
-      <div className="w-full max-w-lg flex flex-col items-center space-y-4 p-4 min-h-screen" style={{ backgroundColor: C.bg }}>
+      <div className="w-full max-w-lg flex flex-col items-center space-y-4 pb-4">
         <LessonBadge lessonIndex={lessonIndex} totalLessons={totalLessons} qIdx={qIdx} qTotal={workingQueue.length} lang={activeLang} />
         <div className="w-full h-3 bg-slate-200 rounded-full overflow-hidden">
           <motion.div className="h-full rounded-full" style={{ backgroundColor: C.doneBorder }} animate={{ width: `${progressPct}%` }} transition={{ duration: 0.4 }} />
@@ -459,7 +459,7 @@ const Quiz = ({
           >
             <div className="text-xs font-black uppercase text-slate-400 tracking-widest">{T('quiz.title')}</div>
             <div className="text-center py-2">
-              <span className="text-6xl font-bold text-slate-800" style={{ fontFamily: 'Amiri, serif' }} dir="rtl">
+              <span className="text-4xl sm:text-5xl font-bold text-slate-800" style={{ fontFamily: 'Amiri, serif' }} dir="rtl">
                 {word?.word}
               </span>
             </div>
@@ -485,7 +485,7 @@ const Quiz = ({
 
   // ── Match ──
   return (
-    <div className="w-full max-w-lg flex flex-col items-center space-y-4 p-4 min-h-screen" style={{ backgroundColor: C.bg }}>
+    <div className="w-full max-w-lg flex flex-col items-center space-y-4 pb-4">
       <LessonBadge lessonIndex={lessonIndex} totalLessons={totalLessons} qIdx={qIdx} qTotal={workingQueue.length} lang={activeLang} />
       <div className="w-full h-3 bg-slate-200 rounded-full overflow-hidden">
         <motion.div className="h-full rounded-full" style={{ backgroundColor: C.teal }} animate={{ width: `${progressPct}%` }} transition={{ duration: 0.4 }} />

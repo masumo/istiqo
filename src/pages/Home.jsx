@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Flame, Star, Lock, Check, Settings, Volume2, VolumeX } from 'lucide-react';
+import { Flame, Star, Lock, Check, Settings, Volume2, VolumeX, X, Bell, RotateCcw } from 'lucide-react';
 import NurMascot from '../components/NurMascot/NurMascot';
 import {
   useUserStore,
@@ -53,8 +53,138 @@ const ProgressRing = ({ pct = 0, size = 80, stroke = 6 }) => {
   );
 };
 
+// ─── Settings Modal ───────────────────────────────────────────────────────────
+const REMINDER_KEY = 'istiqo_reminder_time';
+
+const scheduleReminder = (timeStr) => {
+  if (!('Notification' in window)) return;
+  Notification.requestPermission().then((permission) => {
+    if (permission !== 'granted') return;
+
+    // Clear any existing scheduled reminder
+    const existingId = localStorage.getItem('istiqo_reminder_timeout_id');
+    if (existingId) clearTimeout(Number(existingId));
+
+    const [hours, minutes] = timeStr.split(':').map(Number);
+    const now = new Date();
+    const target = new Date();
+    target.setHours(hours, minutes, 0, 0);
+    if (target <= now) target.setDate(target.getDate() + 1);
+
+    const delay = target.getTime() - now.getTime();
+    const id = setTimeout(() => {
+      new Notification('Istiqo – Waktunya Belajar! 📖', {
+        body: 'Jangan lupa latihan harian kamu hari ini.',
+        icon: '/icons/icon-192.png',
+      });
+    }, delay);
+    localStorage.setItem('istiqo_reminder_timeout_id', String(id));
+  });
+};
+
+const SettingsModal = ({ isOpen, onClose, lang }) => {
+  const s = (k) => getUIString(lang, k);
+  const [reminderTime, setReminderTime] = useState(
+    () => localStorage.getItem(REMINDER_KEY) || '18:00'
+  );
+
+  const handleTimeChange = (e) => {
+    const val = e.target.value;
+    setReminderTime(val);
+    localStorage.setItem(REMINDER_KEY, val);
+    scheduleReminder(val);
+  };
+
+  const handleResetProgress = () => {
+    if (window.confirm(lang === 'en' ? 'Reset all progress? This cannot be undone.' : 'Reset semua progres? Ini tidak bisa dibatalkan.')) {
+      localStorage.clear();
+      window.location.reload();
+    }
+  };
+
+  return (
+    <AnimatePresence>
+      {isOpen && (
+        <>
+          {/* Backdrop */}
+          <motion.div
+            key="settings-backdrop"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={onClose}
+            className="fixed inset-0 bg-black/40 z-50"
+          />
+          {/* Bottom sheet */}
+          <motion.div
+            key="settings-sheet"
+            initial={{ y: '100%' }}
+            animate={{ y: 0 }}
+            exit={{ y: '100%' }}
+            transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+            className="fixed bottom-0 left-0 right-0 z-50 bg-white rounded-t-3xl shadow-2xl max-w-md mx-auto"
+          >
+            {/* Handle */}
+            <div className="flex justify-center pt-3 pb-1">
+              <div className="w-10 h-1.5 rounded-full bg-gray-200" />
+            </div>
+
+            <div className="px-6 pb-10 pt-2">
+              {/* Title row */}
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-lg font-black text-slate-800">
+                  {lang === 'en' ? 'Settings' : 'Pengaturan'}
+                </h2>
+                <button
+                  onClick={onClose}
+                  className="w-8 h-8 flex items-center justify-center rounded-xl hover:bg-gray-100 transition-colors"
+                >
+                  <X className="w-5 h-5 text-gray-500" />
+                </button>
+              </div>
+
+              {/* Daily Reminder */}
+              <div className="mb-6">
+                <div className="flex items-center gap-2 mb-2">
+                  <Bell className="w-4 h-4 text-slate-500" />
+                  <span className="text-sm font-bold text-slate-700">
+                    {lang === 'en' ? 'Daily Reminder Time' : 'Waktu Pengingat Harian'}
+                  </span>
+                </div>
+                <input
+                  type="time"
+                  value={reminderTime}
+                  onChange={handleTimeChange}
+                  className="w-full rounded-xl border-2 border-gray-200 p-3 text-gray-800 font-bold text-base focus:outline-none focus:border-teal-400 transition-colors"
+                />
+                <p className="text-xs text-gray-400 mt-1.5 font-medium">
+                  {lang === 'en'
+                    ? 'You\'ll get a browser notification at this time each day.'
+                    : 'Kamu akan mendapat notifikasi browser setiap hari pada waktu ini.'}
+                </p>
+              </div>
+
+              {/* Divider */}
+              <div className="border-t border-gray-100 mb-6" />
+
+              {/* Reset Progress */}
+              <button
+                onClick={handleResetProgress}
+                className="w-full flex items-center justify-center gap-2 py-4 rounded-2xl border-2 border-b-[5px] border-red-200 bg-red-50 text-red-600 font-black text-sm hover:bg-red-100 active:translate-y-[3px] active:border-b-[2px] transition-all"
+              >
+                <RotateCcw className="w-4 h-4" />
+                {lang === 'en' ? 'Reset Progress' : 'Reset Progres'}
+              </button>
+            </div>
+          </motion.div>
+        </>
+      )}
+    </AnimatePresence>
+  );
+};
+
 // ─── Header ───────────────────────────────────────────────────────────────────
-const HeaderBar = ({ streak, xp, lang, isAudioMuted, onToggleAudio }) => {
+const HeaderBar = ({ streak, xp, lang, isAudioMuted, onToggleAudio, onOpenSettings }) => {
   const s = (k) => getUIString(lang, k);
   return (
     <div className="sticky top-0 z-40 bg-white border-b-2 border-gray-100 shadow-sm">
@@ -74,7 +204,7 @@ const HeaderBar = ({ streak, xp, lang, isAudioMuted, onToggleAudio }) => {
           <button onClick={onToggleAudio} className="w-8 h-8 flex items-center justify-center rounded-xl hover:bg-gray-100 transition-colors">
             {isAudioMuted ? <VolumeX className="w-5 h-5 text-gray-500" /> : <Volume2 className="w-5 h-5 text-gray-500" />}
           </button>
-          <button className="w-8 h-8 flex items-center justify-center rounded-xl hover:bg-gray-100 transition-colors">
+          <button onClick={onOpenSettings} className="w-8 h-8 flex items-center justify-center rounded-xl hover:bg-gray-100 transition-colors">
             <Settings className="w-5 h-5 text-gray-500" />
           </button>
         </div>
@@ -274,6 +404,8 @@ const Home = () => {
   const lang = preferredLanguage || 'id';
   const s = (k) => getUIString(lang, k);
 
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+
   const setView = useVocabStore((st) => st.setView);
   const startUnit = useVocabStore((st) => st.startUnit);
   const setCurrentQuizWords = useUserStore((st) => st.setCurrentQuizWords);
@@ -331,7 +463,9 @@ const Home = () => {
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: C.bg }}>
-      <HeaderBar streak={streak} xp={xp} lang={lang} isAudioMuted={isAudioMuted} onToggleAudio={toggleAudio} />
+      <HeaderBar streak={streak} xp={xp} lang={lang} isAudioMuted={isAudioMuted} onToggleAudio={toggleAudio} onOpenSettings={() => setIsSettingsOpen(true)} />
+
+      <SettingsModal isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} lang={lang} />
 
       <main className="max-w-md mx-auto px-4 py-6">
         <div className="relative pt-6">
