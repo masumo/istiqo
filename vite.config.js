@@ -37,7 +37,8 @@ export default defineConfig({
   ],
   server: {
     port: 5173,
-    host: true,
+    // Pakai localhost di browser agar cocok dengan Google OAuth "Authorized JavaScript origins"
+    host: 'localhost',
     proxy: {
       // All /api/* requests are forwarded to the Express backend.
       // This ensures the frontend NEVER calls external APIs directly.

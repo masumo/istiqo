@@ -15,29 +15,42 @@ const appendLocal = (entry) => {
   }
 };
 
+export const buildActivityDayPayload = (activity = {}) => ({
+  type:    activity.type || 'LESSON',
+  seconds: activity.seconds ?? 30,
+  date:    activity.date ?? new Date().toISOString().slice(0, 10),
+});
+
 export const useRecordActivity = () => {
   const authToken = useUserStore((s) => s.authToken);
   const allowUserApiCalls = useUserStore((s) => s.allowUserApiCalls);
 
   return useCallback(
     async (activity) => {
-      const payload = {
-        ...activity,
-        created_at: new Date().toISOString(),
-      };
+      const payload = buildActivityDayPayload(activity);
 
       if (!authToken || !allowUserApiCalls) {
+        console.info(
+          '[QF Activity] 💾 Disimpan lokal (login QF belum aktif — cek log server [auth] ✅)',
+          payload
+        );
         appendLocal(payload);
         return { mode: 'local' };
       }
 
-      const api = userApi(authToken);
-      await api.postActivity(payload);
-      return { mode: 'remote' };
+      try {
+        const api = userApi(authToken);
+        const res = await api.postActivityDay(payload);
+        console.log('[QF Activity] ✅ Tersimpan ke QF:', payload, res);
+        return { mode: 'remote' };
+      } catch (e) {
+        console.warn('[QF Activity] ⚠️ Gagal, disimpan lokal:', e.message, payload);
+        appendLocal(payload);
+        return { mode: 'local' };
+      }
     },
-    [allowUserApiCalls, authToken]
+    [authToken, allowUserApiCalls]
   );
 };
 
 export default useRecordActivity;
-

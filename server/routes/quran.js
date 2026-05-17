@@ -28,6 +28,7 @@
 
 import { Router } from 'express';
 import { getAccessToken, getContentBaseUrl, invalidateToken } from '../lib/quranAuth.js';
+import { getContentClientId, getQFEnv } from '../lib/qfEnv.js';
 
 const router = Router();
 
@@ -41,8 +42,8 @@ const router = Router();
 function buildContentHeaders(token) {
   return {
     'x-auth-token': token,
-    'x-client-id':  process.env.QF_CLIENT_ID ?? '',
-    Accept:          'application/json',
+    'x-client-id':  getContentClientId(),
+    Accept:         'application/json',
   };
 }
 
@@ -80,6 +81,19 @@ async function proxyToContentApi(req, res, qfPath) {
     let data;
     const contentType = response.headers.get('content-type');
     
+    if (response.status === 403) {
+      const contentEnv = getQFEnv('content');
+      const clientId = getContentClientId();
+      console.error(
+        `[quran proxy] 403 contentEnv=${contentEnv} x-client-id=${clientId ? clientId.slice(0, 12) + '…' : '(empty)'} → ${upstreamUrl}`
+      );
+      if (contentEnv === 'production' && !process.env.QF_CONTENT_CLIENT_ID) {
+        console.error(
+          '[quran proxy] ⚠️ QF_CONTENT_ENV=production but QF_CONTENT_CLIENT_ID missing — using prelive QF_CLIENT_ID (will 403)'
+        );
+      }
+    }
+
     if (contentType && contentType.includes('application/json')) {
       data = await response.json();
     } else {

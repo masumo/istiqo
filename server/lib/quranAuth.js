@@ -20,38 +20,18 @@
  *   { access_token: string, token_type: "bearer", expires_in: number, scope: "content" }
  */
 
-// ── Environment URL maps (per official docs) ───────────────────────────────────
-const AUTH_BASE_BY_ENV = {
-  prelive:    'https://prelive-oauth2.quran.foundation',
-  production: 'https://oauth2.quran.foundation',
-};
+import {
+  getAuthBaseUrl as getContentOAuthBaseUrl,
+  getContentBaseUrl,
+  getContentClientCredentials,
+  getQFEnv,
+} from './qfEnv.js';
 
-const CONTENT_BASE_BY_ENV = {
-  prelive:    'https://apis-prelive.quran.foundation',
-  production: 'https://apis.quran.foundation',
-};
+export { getContentBaseUrl };
 
-/**
- * Returns the resolved OAuth2 base URL for the current QF_ENV.
- * Throws if QF_ENV is set to an unrecognised value.
- */
+/** OAuth2 token endpoint untuk Content API (mengikuti QF_CONTENT_ENV) */
 export function getAuthBaseUrl() {
-  const env = process.env.QF_ENV ?? 'prelive';
-  if (!(env in AUTH_BASE_BY_ENV)) {
-    throw new Error(`[quranAuth] QF_ENV must be 'prelive' or 'production', got: ${env}`);
-  }
-  return AUTH_BASE_BY_ENV[env];
-}
-
-/**
- * Returns the resolved Content API base URL for the current QF_ENV.
- */
-export function getContentBaseUrl() {
-  const env = process.env.QF_ENV ?? 'prelive';
-  if (!(env in CONTENT_BASE_BY_ENV)) {
-    throw new Error(`[quranAuth] QF_ENV must be 'prelive' or 'production', got: ${env}`);
-  }
-  return CONTENT_BASE_BY_ENV[env];
+  return getContentOAuthBaseUrl('content');
 }
 
 // ── Token cache ────────────────────────────────────────────────────────────────
@@ -90,11 +70,11 @@ export function invalidateToken() {
  * @returns {Promise<string>}
  */
 async function _fetchToken() {
-  const { QF_CLIENT_ID, QF_CLIENT_SECRET } = process.env;
+  const { clientId, clientSecret } = getContentClientCredentials();
 
-  if (!QF_CLIENT_ID || !QF_CLIENT_SECRET) {
+  if (!clientId || !clientSecret) {
     throw new Error(
-      '[quranAuth] QF_CLIENT_ID and QF_CLIENT_SECRET must be set in .env'
+      '[quranAuth] Content credentials missing — set QF_CONTENT_CLIENT_ID/SECRET (production) or QF_CLIENT_ID/SECRET'
     );
   }
 
@@ -102,7 +82,7 @@ async function _fetchToken() {
   const tokenUrl    = `${authBaseUrl}/oauth2/token`;
 
   // HTTP Basic auth: base64(client_id:client_secret)
-  const basicAuth = Buffer.from(`${QF_CLIENT_ID}:${QF_CLIENT_SECRET}`).toString('base64');
+  const basicAuth = Buffer.from(`${clientId}:${clientSecret}`).toString('base64');
 
   const res = await fetch(tokenUrl, {
     method: 'POST',
@@ -126,9 +106,9 @@ async function _fetchToken() {
   // expires_in is in seconds; default to 3600 if missing
   _expiresAt = Date.now() + (data.expires_in ?? 3600) * 1000;
 
-  const env = process.env.QF_ENV ?? 'prelive';
+  const env = getQFEnv('content');
   console.log(
-    `[quranAuth] Token refreshed  env=${env}  expires_in=${data.expires_in ?? 3600}s`
+    `[quranAuth] Token refreshed  contentEnv=${env}  expires_in=${data.expires_in ?? 3600}s`
   );
 
   return _cachedToken;

@@ -19,6 +19,8 @@ import { existsSync } from 'fs';
 import quranRoutes from './routes/quran.js';
 import userRoutes from './routes/user.js';
 import authRoutes from './routes/auth.js';
+import qfOAuthRoutes from './routes/qfOAuth.js';
+import { getEnvSummary } from './lib/qfEnv.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const app = express();
@@ -30,9 +32,12 @@ app.use(express.json());
 // CORS for Vite dev server in development
 if (process.env.NODE_ENV !== 'production') {
   app.use((req, res, next) => {
-    res.header('Access-Control-Allow-Origin', 'http://localhost:5173');
+    const origin = req.headers.origin;
+    if (origin && /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin)) {
+      res.header('Access-Control-Allow-Origin', origin);
+    }
     res.header('Access-Control-Allow-Methods', 'GET,POST,DELETE,OPTIONS');
-    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, x-timezone');
     if (req.method === 'OPTIONS') return res.sendStatus(200);
     next();
   });
@@ -42,27 +47,28 @@ if (process.env.NODE_ENV !== 'production') {
 app.use('/api/quran', quranRoutes);
 app.use('/api/user', userRoutes);
 app.use('/api/auth', authRoutes);
+app.use('/api/auth/qf', qfOAuthRoutes);
 
 // ── Health check ───────────────────────────────────────────────────────────────
 app.get('/api/health', (_req, res) => {
-  const env = process.env.QF_ENV ?? 'prelive';
-  const AUTH_BASE = {
-    prelive:    'https://prelive-oauth2.quran.foundation',
-    production: 'https://oauth2.quran.foundation',
-  };
-  const CONTENT_BASE = {
-    prelive:    'https://apis-prelive.quran.foundation',
-    production: 'https://apis.quran.foundation',
-  };
+  const summary = getEnvSummary();
   res.json({
     status: 'ok',
     timestamp: new Date().toISOString(),
     env: {
-      qfEnv:          env,
-      hasClientId:    Boolean(process.env.QF_CLIENT_ID),
+      ...summary,
+      hasClientId:     Boolean(process.env.QF_CLIENT_ID),
       hasClientSecret: Boolean(process.env.QF_CLIENT_SECRET),
-      authBaseUrl:    AUTH_BASE[env]    ?? '(unknown QF_ENV)',
-      contentBaseUrl: CONTENT_BASE[env] ?? '(unknown QF_ENV)',
+      hasContentCreds: Boolean(
+        process.env.QF_CONTENT_CLIENT_ID || process.env.QF_CLIENT_ID
+      ),
+      oauthRedirect: process.env.QF_REDIRECT_URI ?? '(not set)',
+      hasDemoToken:  Boolean(process.env.QF_DEMO_ACCESS_TOKEN),
+      hint: summary.split
+        ? `Split env: content=${summary.contentEnv}, user=${summary.userEnv} — demo token harus dari ${summary.userEnv}`
+        : summary.userEnv === 'prelive'
+          ? 'Pre-Production: User API + Activity API OK untuk hackathon'
+          : 'Production: user/auth mungkin tidak aktif — set QF_USER_ENV=prelive',
     },
   });
 });
@@ -87,16 +93,14 @@ export default app;
 // Vercel handles the serverless execution, so we don't call .listen() there.
 if (process.env.NODE_ENV !== 'production' || process.env.RUN_LOCAL === 'true') {
   app.listen(PORT, () => {
-    const qfEnv = process.env.QF_ENV ?? 'prelive';
-    const AUTH_BASE    = { prelive: 'https://prelive-oauth2.quran.foundation', production: 'https://oauth2.quran.foundation' };
-    const CONTENT_BASE = { prelive: 'https://apis-prelive.quran.foundation',   production: 'https://apis.quran.foundation' };
+    const s = getEnvSummary();
 
     console.log(`\n🕌  Istiqo API Server`);
-    console.log(`   ├─ Running at:   http://localhost:${PORT}`);
-    console.log(`   ├─ QF_ENV:       ${qfEnv}`);
-    console.log(`   ├─ Auth URL:     ${AUTH_BASE[qfEnv] ?? '(invalid QF_ENV)'}`);
-    console.log(`   ├─ Content URL:  ${CONTENT_BASE[qfEnv] ?? '(invalid QF_ENV)'}`);
-    console.log(`   ├─ Client ID:    ${process.env.QF_CLIENT_ID    ? '✓ set' : '✗ MISSING'}`);
-    console.log(`   └─ Client Secret: ${process.env.QF_CLIENT_SECRET ? '✓ set' : '✗ MISSING'}\n`);
+    console.log(`   ├─ Running at:    http://localhost:${PORT}`);
+    console.log(`   ├─ Content env:   ${s.contentEnv}  → ${s.contentBaseUrl}`);
+    console.log(`   ├─ User env:      ${s.userEnv}  → ${s.userAuthBaseUrl}`);
+    console.log(`   ├─ OAuth (user):  ${s.authBaseUrl}`);
+    console.log(`   ├─ Client ID:     ${process.env.QF_CLIENT_ID ? '✓ set' : '✗ MISSING'}`);
+    console.log(`   └─ Demo token:    ${process.env.QF_DEMO_ACCESS_TOKEN ? '✓ set' : '(optional)'}\n`);
   });
 }

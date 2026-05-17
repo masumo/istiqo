@@ -245,6 +245,7 @@ export const useUserStore = create(
       notificationTime: '07:00',
       isOnboarded: false,
       authToken: null,
+      authSource: null,
       allowUserApiCalls: false,
       xp: 0,
       streak: 0,
@@ -273,6 +274,13 @@ export const useUserStore = create(
       setNotificationTime: (time) => set({ notificationTime: time }),
       completeOnboarding: () => set({ isOnboarded: true }),
       setAuthToken: (token) => set({ authToken: token }),
+      setAuthSource: (source) => set({ authSource: source }),
+      setAuthSession: ({ token, source }) =>
+        set({
+          authToken: token,
+          authSource: source,
+          allowUserApiCalls: source === 'qf' && Boolean(token),
+        }),
       setAllowUserApiCalls: (allow) => set({ allowUserApiCalls: allow }),
       toggleAudio: () =>
         set((state) => {
@@ -287,7 +295,14 @@ export const useUserStore = create(
         authStatus: 'guest', 
         guestCreatedAt: state.guestCreatedAt || new Date().toISOString() 
       })),
-      logout: () => set({ user: null, authStatus: 'guest', authToken: null }),
+      logout: () =>
+        set({
+          user: null,
+          authStatus: 'guest',
+          authToken: null,
+          authSource: null,
+          allowUserApiCalls: false,
+        }),
 
       // ── Quiz timer ────────────────────────────────────────────────────────
       startQuizTimer: () => set({ quizStartTime: Date.now() }),
@@ -403,6 +418,22 @@ export const useUserStore = create(
           dailyXPDate: data?.date ?? get().dailyXPDate,
         }),
 
+      // Restore full user progress from a saved snapshot (e.g. from QF activity log)
+      restoreFromSnapshot: (snapshot) => {
+        if (!snapshot) return;
+        const state = get();
+        set({
+          xp:             snapshot.xp             ?? state.xp,
+          streak:         snapshot.streak         ?? state.streak,
+          lastSessionDate: snapshot.lastSessionDate ?? state.lastSessionDate,
+          dailyGoal:      snapshot.dailyGoal      ?? state.dailyGoal,
+          lessonProgress: snapshot.lessonProgress ?? state.lessonProgress,
+          dailyXP:        snapshot.dailyXP        ?? state.dailyXP,
+          dailyXPDate:    snapshot.dailyXPDate    ?? state.dailyXPDate,
+          dailyWordsLearned: snapshot.dailyWordsLearned ?? state.dailyWordsLearned,
+        });
+      },
+
       // ── Streak ────────────────────────────────────────────────────────────
       localIncrementStreak: () =>
         set((state) => {
@@ -429,7 +460,32 @@ export const useUserStore = create(
         return get().lastStreakClaimedDate === todayKey();
       },
       claimStreakToday: () => {
-        set({ lastStreakClaimedDate: todayKey() });
+        const today = todayKey();
+        set((state) => {
+          if (state.lastStreakClaimedDate === today) return {};
+
+          let nextStreak = state.streak || 0;
+          let nextFreeze = state.streakFreezeCount ?? 0;
+          const last = state.lastSessionDate;
+
+          if (last !== today) {
+            if (!last || daysBetween(last, today) <= 1) {
+              nextStreak += 1;
+            } else if (nextFreeze > 0) {
+              nextStreak += 1;
+              nextFreeze -= 1;
+            } else {
+              nextStreak = 1;
+            }
+          }
+
+          return {
+            streak: nextStreak,
+            streakFreezeCount: nextFreeze,
+            lastSessionDate: today,
+            lastStreakClaimedDate: today,
+          };
+        });
       },
     }),
     { name: 'istiqo-user-storage', storage: createJSONStorage(() => localStorage) }

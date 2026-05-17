@@ -2,8 +2,6 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { Check } from 'lucide-react';
 import { useUserStore, getUIString } from '../../store/userStore';
-import { useDailyGoalSync } from '../../hooks/useDailyGoalSync';
-
 const C = {
   green: '#58CC02', greenDark: '#46A302',
   teal: '#37607D', tealDark: '#2A4B63',
@@ -21,12 +19,10 @@ const GOALS = [
 
 const Step2Goal = ({ onNext }) => {
   const { preferredLanguage, dailyGoal, setDailyGoal } = useUserStore();
-  const { setDailyGoalOnServer } = useDailyGoalSync();
   const s = (k) => getUIString(preferredLanguage, k);
 
-  const handleSelect = async (value) => {
+  const handleSelect = (value) => {
     setDailyGoal(value);
-    await setDailyGoalOnServer(value);
   };
 
   return (

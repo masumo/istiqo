@@ -286,6 +286,7 @@ const Quiz = ({
     streak,
     hasClaimedStreakToday,
     claimStreakToday,
+    localIncrementStreak,
     isAudioMuted
   } = useUserStore();
   const activeLang = lang || preferredLanguage || 'id';
@@ -341,7 +342,19 @@ const Quiz = ({
   // Store latest values in refs so the finish effect never has stale captures
   // but also never re-fires due to reference churn.
   const storeRef = useRef({});
-  storeRef.current = { getQuizElapsedSecs, clearQuizTimer, completeLesson, onComplete, unitKey, lessonIndex, totalLessons, initialTotal, hasClaimedStreakToday, isAudioMuted };
+  storeRef.current = {
+    getQuizElapsedSecs,
+    clearQuizTimer,
+    completeLesson,
+    onComplete,
+    unitKey,
+    lessonIndex,
+    totalLessons,
+    initialTotal,
+    hasClaimedStreakToday,
+    localIncrementStreak,
+    isAudioMuted,
+  };
 
   useEffect(() => {
     if (screen !== 'quiz') return;
@@ -350,17 +363,28 @@ const Quiz = ({
     if (finishedRef.current) return; // already finished — do not re-run
     finishedRef.current = true;
 
-    const { getQuizElapsedSecs: elapsed, clearQuizTimer: clearTimer, completeLesson: complete,
-            onComplete: done, unitKey: uk, lessonIndex: li, totalLessons: tl, initialTotal: it, hasClaimedStreakToday: checkStreak } = storeRef.current;
+    const {
+      getQuizElapsedSecs: elapsed,
+      clearQuizTimer: clearTimer,
+      completeLesson: complete,
+      onComplete: done,
+      unitKey: uk,
+      lessonIndex: li,
+      totalLessons: tl,
+      initialTotal: it,
+      hasClaimedStreakToday: checkStreak,
+      localIncrementStreak: bumpStreak,
+    } = storeRef.current;
 
     const secs = elapsed();
     clearTimer();
     setDurationSecs(secs);
     const result = complete(uk, li, tl, correctCount, it);
     setXpEarned(result?.xpEarned ?? 0);
+    bumpStreak();
     done(correctCount, it);
     playSFX('success', storeRef.current.isAudioMuted);
-    
+
     if (!checkStreak()) {
       setScreen('streak');
     } else {

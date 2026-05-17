@@ -26,7 +26,10 @@ export const handleGoogleLogin = async (googleResponse) => {
   const response = await fetch('/api/auth/google', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ credential }),
+    body: JSON.stringify({
+      credential,
+      google_client_id: import.meta.env.VITE_GOOGLE_CLIENT_ID || undefined,
+    }),
   });
 
   if (!response.ok) {

@@ -9,8 +9,7 @@ import { fetchVerseByKey, fetchRecitationAudio } from '../api/quranApi';
 import { useUserStore } from '../store/userStore';
 import { useVocabCurriculum } from '../hooks/useVocabCurriculum';
 import { useRecordActivity } from '../hooks/useRecordActivity';
-import { useStreakSync } from '../hooks/useStreakSync';
-import { useDailyGoalSync } from '../hooks/useDailyGoalSync';
+import { useQFUserSession } from '../hooks/useQFUserSession';
 import { MNEMONICS } from '../utils/mnemonics';
 
 const SECTION_NAMES = {
@@ -103,8 +102,7 @@ const Learn = () => {
 
   const { currentSessionWords, currentUnit, setView, finishUnit } = useVocabCurriculum();
   const recordActivity  = useRecordActivity();
-  const syncStreak      = useStreakSync();
-  const { updateDailyProgress } = useDailyGoalSync();
+  const { syncAfterLesson } = useQFUserSession();
 
   // ── Session words ─────────────────────────────────────────────────────────
   // Use all session words (lesson's words, already trimmed in Home.jsx)
@@ -251,6 +249,7 @@ const Learn = () => {
 
   const handleNext = () => {
     if (phase !== 'cards') return;
+    recordActivity({ type: 'LESSON', seconds: 30 }).catch(() => {});
     if (currentIndex < sessionWords.length - 1) {
       setCurrentIndex((i) => i + 1);
       const xpEarned = recordUnitCompletion(1);
@@ -263,21 +262,12 @@ const Learn = () => {
   // ── Quiz completion ───────────────────────────────────────────────────────
   // Called by Quiz after internal results screen; XP already saved by completeLesson()
   const handleQuizComplete = async (score) => {
-    // Mark unit words as learned in vocabStore (no XP call — Quiz already did it)
     finishUnit({ score });
-    await syncStreak();
-    await updateDailyProgress();
-
-    // Record activity for analytics (non-blocking)
-    if (currentUnit) {
-      recordActivity({
-        type:    'unit_completed',
-        section: currentUnit.section,
-        unit:    currentUnit.unit,
-        score,
-        words:   sessionWords.map((w) => ({ rank: w.rank, word: w.word })),
-      }).catch(() => {});
-    }
+    await syncAfterLesson({ wordsLearned: sessionWords.length });
+    recordActivity({
+      type: 'LESSON',
+      seconds: Math.max(sessionWords.length * 30, 60),
+    }).catch(() => {});
   };
 
   // Called by Quiz's "Lanjut" button (after results screen)

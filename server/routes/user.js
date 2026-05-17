@@ -1,108 +1,82 @@
 /**
- * server/routes/user.js
+ * server/routes/user.js — Quran Foundation User API proxy (activity days only)
  *
- * Proxy layer for Quran Foundation User API.
- * Mounts at: /api/user
+ * Docs: https://api-docs.quran.foundation/docs/user_related_apis_versioned/add-update-activity-day/
  *
- * The frontend sends its user auth token via Authorization header.
- * This server forwards it to the QF User API endpoint.
- *
- * Routes:
- *   GET  /api/user/streak
- *   POST /api/user/streak
- *   GET  /api/user/goals
- *   POST /api/user/goals
- *   POST /api/user/goals/progress
- *   GET  /api/user/goals/progress
- *   GET  /api/user/bookmarks
- *   POST /api/user/bookmarks
- *   DELETE /api/user/bookmarks/:id
- *   GET  /api/user/activity
- *   POST /api/user/activity
+ * Base: https://apis[-prelive].quran.foundation/auth
+ * Headers: x-auth-token, x-client-id, x-timezone (optional)
  */
 
 import { Router } from 'express';
+import { getUserAuthBaseUrl, getUserClientId, getQFEnv } from '../lib/qfEnv.js';
 
 const router = Router();
 
-const QF_USER_BASE = 'https://api.quran.com/api/v4/user';
+function getUserApiBase() {
+  return getUserAuthBaseUrl();
+}
 
-/**
- * Extracts the Bearer token from the Authorization header.
- * Returns null if not present.
- */
 function extractBearerToken(req) {
   const auth = req.headers['authorization'];
   if (!auth || !auth.startsWith('Bearer ')) return null;
   return auth.slice(7);
 }
 
-/**
- * Generic proxy for User API calls.
- * Requires a valid user token in Authorization header.
- */
 async function proxyUserRequest(req, res, path, method = 'GET', body = null) {
   const token = extractBearerToken(req);
-
   if (!token) {
     return res.status(401).json({ error: 'User auth token required' });
   }
 
-  const upstreamUrl = `${QF_USER_BASE}${path}`;
+  const upstreamUrl = `${getUserApiBase()}${path}`;
 
   const options = {
     method,
     headers: {
-      Authorization: `Bearer ${token}`,
-      'Content-Type': 'application/json',
+      'x-auth-token':  token,
+      'x-client-id':   getUserClientId(),
+      'x-timezone':    req.headers['x-timezone'] || 'UTC',
+      'Content-Type':  'application/json',
+      Accept:          'application/json',
     },
   };
-
-  if (body) {
-    options.body = JSON.stringify(body);
-  }
+  if (body) options.body = JSON.stringify(body);
 
   try {
     const response = await fetch(upstreamUrl, options);
-    const data = await response.json().catch(() => ({}));
+    const text = await response.text();
+    let data;
+    try { data = JSON.parse(text); } catch { data = { raw: text }; }
+
+    if (!response.ok) {
+      console.error(`[user proxy] ${method} ${upstreamUrl} → ${response.status}:`, text.slice(0, 300));
+      if (response.status === 403 && data?.type === 'invalid_token') {
+        const userEnv = getQFEnv('user');
+        console.error(
+          `[user proxy] ⚠️ Token tidak cocok dengan userEnv=${userEnv}. ` +
+            (userEnv === 'prelive'
+              ? 'Ambil QF_DEMO_ACCESS_TOKEN dari prelive-oauth2 / apis-prelive — BUKAN production.'
+              : 'Pastikan token dari environment yang sama.')
+        );
+      }
+    }
     return res.status(response.status).json(data);
   } catch (err) {
-    console.error('[user proxy] Error:', err.message);
+    console.error('[user proxy] Fetch error:', err.message, '→', upstreamUrl);
     return res.status(502).json({ error: 'User API proxy error', detail: err.message });
   }
 }
 
-// ── Streak ────────────────────────────────────────────────────────────────────
-router.get('/streak', (req, res) => proxyUserRequest(req, res, '/streak'));
-router.post('/streak', (req, res) => proxyUserRequest(req, res, '/streak', 'POST'));
+// ── Activity Days ─────────────────────────────────────────────────────────────
+router.get('/activity-days', (req, res) => proxyUserRequest(req, res, '/v1/activity-days'));
 
-// ── Goals ─────────────────────────────────────────────────────────────────────
-router.get('/goals', (req, res) => proxyUserRequest(req, res, '/goals'));
-router.post('/goals', (req, res) =>
-  proxyUserRequest(req, res, '/goals', 'POST', req.body)
+router.post('/activity-days', (req, res) =>
+  proxyUserRequest(req, res, '/v1/activity-days', 'POST', req.body)
 );
 
-// ── Goals Progress ────────────────────────────────────────────────────────────
-router.get('/goals/progress', (req, res) =>
-  proxyUserRequest(req, res, '/goals/progress')
-);
-router.post('/goals/progress', (req, res) =>
-  proxyUserRequest(req, res, '/goals/progress', 'POST', req.body)
-);
-
-// ── Bookmarks ─────────────────────────────────────────────────────────────────
-router.get('/bookmarks', (req, res) => proxyUserRequest(req, res, '/bookmarks'));
-router.post('/bookmarks', (req, res) =>
-  proxyUserRequest(req, res, '/bookmarks', 'POST', req.body)
-);
-router.delete('/bookmarks/:id', (req, res) =>
-  proxyUserRequest(req, res, `/bookmarks/${req.params.id}`, 'DELETE')
-);
-
-// ── Activity ──────────────────────────────────────────────────────────────────
-router.get('/activity', (req, res) => proxyUserRequest(req, res, '/activity'));
+// Legacy alias used by older client paths
 router.post('/activity', (req, res) =>
-  proxyUserRequest(req, res, '/activity', 'POST', req.body)
+  proxyUserRequest(req, res, '/v1/activity-days', 'POST', req.body)
 );
 
 export default router;
