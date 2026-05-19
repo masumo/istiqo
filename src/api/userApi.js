@@ -33,7 +33,7 @@ export const userApi = (token) => {
   };
 
   return {
-    getActivityDays: (params = '') =>
+    getActivityDays: (params = 'first=20&dateOrderBy=desc') =>
       req(`/activity-days${params ? `?${params}` : ''}`),
 
     postActivityDay: (data) => req('/activity-days', 'POST', data),
