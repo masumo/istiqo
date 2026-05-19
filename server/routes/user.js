@@ -33,7 +33,7 @@ async function proxyUserRequest(req, res, path, method = 'GET', body = null) {
   const options = {
     method,
     headers: {
-      Authorization:   `Bearer ${token}`,
+      'x-auth-token':  token,
       'x-client-id':   getUserClientId(),
       'x-timezone':    req.headers['x-timezone'] || 'UTC',
       'Content-Type':  'application/json',
@@ -68,15 +68,15 @@ async function proxyUserRequest(req, res, path, method = 'GET', body = null) {
 }
 
 // ── Activity Days ─────────────────────────────────────────────────────────────
-router.get('/activity-days', (req, res) => proxyUserRequest(req, res, '/v1/user/activity_days'));
+router.get('/activity-days', (req, res) => proxyUserRequest(req, res, '/v1/activity-days'));
 
 router.post('/activity-days', (req, res) =>
-  proxyUserRequest(req, res, '/v1/user/activity_days', 'POST', req.body)
+  proxyUserRequest(req, res, '/v1/activity-days', 'POST', req.body)
 );
 
 // Legacy alias used by older client paths
 router.post('/activity', (req, res) =>
-  proxyUserRequest(req, res, '/v1/user/activity_days', 'POST', req.body)
+  proxyUserRequest(req, res, '/v1/activity-days', 'POST', req.body)
 );
 
 export default router;

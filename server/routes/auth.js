@@ -86,12 +86,12 @@ router.get('/demo', async (req, res) => {
     });
   }
 
-  const probeUrl = `${getUserAuthBaseUrl()}/v1/user/activity_days`;
+  const probeUrl = `${getUserAuthBaseUrl()}/v1/activity-days`;
   try {
     const probe = await fetch(probeUrl, {
       method: 'GET',
       headers: {
-        Authorization:  `Bearer ${token}`,
+        'x-auth-token': token,
         'x-client-id':  getUserClientId(),
         Accept:         'application/json',
       },
