@@ -16,9 +16,22 @@ const appendLocal = (entry) => {
 };
 
 export const buildActivityDayPayload = (activity = {}) => ({
-  type:    activity.type || 'LESSON',
-  seconds: activity.seconds ?? 30,
-  date:    activity.date ?? new Date().toISOString().slice(0, 10),
+  ...(() => {
+    const type = activity.type || 'LESSON';
+    const date = activity.date ?? new Date().toISOString().slice(0, 10);
+
+    if (type === 'QURAN') {
+      return {
+        type,
+        seconds:  activity.seconds ?? 30,
+        ranges:   activity.ranges ?? [],
+        mushafId: activity.mushafId ?? 4,
+        ...(date ? { date } : {}),
+      };
+    }
+
+    return { type, ...(date ? { date } : {}) };
+  })(),
 });
 
 export const useRecordActivity = () => {
