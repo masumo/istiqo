@@ -1,7 +1,7 @@
 /**
  * src/api/userApi.js — QF User API client (activity days)
  *
- * Proxied via /api/user → server/routes/user.js → /auth/v1/activity-days
+ * Proxied via /api/user → server/routes/user.js → /api/v1/user/activity_days
  */
 
 const BASE_URL = '/api/user';

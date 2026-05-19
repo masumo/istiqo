@@ -3,8 +3,8 @@
  *
  * Docs: https://api-docs.quran.foundation/docs/user_related_apis_versioned/add-update-activity-day/
  *
- * Base: https://apis[-prelive].quran.foundation/auth
- * Headers: x-auth-token, x-client-id, x-timezone (optional)
+ * Base: https://apis[-prelive].quran.foundation/api
+ * Headers: Authorization (Bearer), x-client-id, x-timezone (optional)
  */
 
 import { Router } from 'express';
@@ -33,7 +33,7 @@ async function proxyUserRequest(req, res, path, method = 'GET', body = null) {
   const options = {
     method,
     headers: {
-      'x-auth-token':  token,
+      Authorization:   `Bearer ${token}`,
       'x-client-id':   getUserClientId(),
       'x-timezone':    req.headers['x-timezone'] || 'UTC',
       'Content-Type':  'application/json',
@@ -68,15 +68,15 @@ async function proxyUserRequest(req, res, path, method = 'GET', body = null) {
 }
 
 // ── Activity Days ─────────────────────────────────────────────────────────────
-router.get('/activity-days', (req, res) => proxyUserRequest(req, res, '/v1/activity-days'));
+router.get('/activity-days', (req, res) => proxyUserRequest(req, res, '/v1/user/activity_days'));
 
 router.post('/activity-days', (req, res) =>
-  proxyUserRequest(req, res, '/v1/activity-days', 'POST', req.body)
+  proxyUserRequest(req, res, '/v1/user/activity_days', 'POST', req.body)
 );
 
 // Legacy alias used by older client paths
 router.post('/activity', (req, res) =>
-  proxyUserRequest(req, res, '/v1/activity-days', 'POST', req.body)
+  proxyUserRequest(req, res, '/v1/user/activity_days', 'POST', req.body)
 );
 
 export default router;

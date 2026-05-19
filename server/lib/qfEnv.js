@@ -20,8 +20,8 @@ export const CONTENT_BASE_BY_ENV = {
 };
 
 export const USER_AUTH_BASE_BY_ENV = {
-  prelive:    'https://apis-prelive.quran.foundation/auth',
-  production: 'https://apis.quran.foundation/auth',
+  prelive:    'https://apis-prelive.quran.foundation/api',
+  production: 'https://apis.quran.foundation/api',
 };
 
 /** @param {'content'|'user'|'default'} scope */

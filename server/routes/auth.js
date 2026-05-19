@@ -1,11 +1,8 @@
 /**
- * server/routes/auth.js — Google credential → QF user access token
+ * server/routes/auth.js — Google credential login
  *
- * POST {contentBase}/content/api/v4/user/auth/google
- * Headers: x-client-id + HTTP Basic (client_id:client_secret)
- * Body: { token: <Google ID token> }
- *
- * Jangan kirim x-auth-token (content token) ke endpoint ini — menyebabkan 404.
+ * Backend returns user info from Google JWT.
+ * Activity tracking will be local-only for Google login users.
  */
 
 import { Router } from 'express';
@@ -30,30 +27,6 @@ function decodeJwtPayload(jwt) {
 
 const decodeGoogleJwt = decodeJwtPayload;
 
-function googleAuthUrls() {
-  const userEnv = getQFEnv('user');
-  if (userEnv === 'production') {
-    return [`${getContentBaseUrl()}/content/api/v4/user/auth/google`];
-  }
-  return [`https://apis-prelive.quran.foundation/content/api/v4/user/auth/google`];
-}
-
-function buildExchangeHeaders() {
-  const clientId = process.env.QF_CLIENT_ID ?? '';
-  const clientSecret = process.env.QF_CLIENT_SECRET ?? '';
-  const headers = {
-    'Content-Type': 'application/json',
-    'x-client-id':  clientId,
-  };
-
-  if (clientId && clientSecret) {
-    const basic = Buffer.from(`${clientId}:${clientSecret}`).toString('base64');
-    headers.Authorization = `Basic ${basic}`;
-  }
-
-  return headers;
-}
-
 /**
  * POST /api/auth/google
  * Body: { credential: <Google ID token> }
@@ -66,56 +39,13 @@ router.post('/google', async (req, res) => {
   }
 
   const userEnv = getQFEnv('user');
-  console.log(`[auth] Google exchange start (QF_USER_ENV=${userEnv})`);
-
-  if (!process.env.QF_CLIENT_ID || !process.env.QF_CLIENT_SECRET) {
-    console.error('[auth] QF_CLIENT_ID atau QF_CLIENT_SECRET belum di-set di .env');
-  }
-
-  const headers = buildExchangeHeaders();
-
-  for (const url of googleAuthUrls()) {
-    try {
-      const qfResponse = await fetch(url, {
-        method: 'POST',
-        headers,
-        body: JSON.stringify({
-          token: credential,
-          ...(googleClientId ? { client_id: googleClientId } : {}),
-        }),
-      });
-
-      const text = await qfResponse.text();
-      let data;
-      try { data = JSON.parse(text); } catch { data = {}; }
-
-      if (qfResponse.ok) {
-        const token =
-          data.access_token ||
-          data.token ||
-          data?.data?.access_token ||
-          data?.data?.token ||
-          null;
-        console.log(`[auth] ✅ QF exchange OK via ${url} — token: ${token ? 'present' : 'missing'}`);
-        return res.json({
-          user:         data.user || data?.data?.user || data,
-          access_token: token,
-          source:       'qf',
-        });
-      }
-
-      console.warn(`[auth] ${url} → ${qfResponse.status}:`, text.slice(0, 200));
-    } catch (err) {
-      console.warn(`[auth] ${url} failed:`, err.message);
-    }
-  }
+  console.log(`[auth] Google login (local fallback mode, QF_USER_ENV=${userEnv})`);
 
   const payload = decodeGoogleJwt(credential);
   if (!payload) {
     return res.status(400).json({ error: 'Invalid Google credential' });
   }
 
-  console.warn('[auth] ⚠️ QF exchange failed — activity API mode lokal');
   return res.json({
     user: {
       name:    payload.name    || '',
@@ -151,17 +81,17 @@ router.get('/demo', async (req, res) => {
       error: 'Token demo kedaluwarsa',
       expiredAt: new Date(expMs).toISOString(),
       hint:
-        'Login ulang di prelive-oauth2.quran.foundation → Network tab → salin x-auth-token baru ke QF_DEMO_ACCESS_TOKEN',
+        'Login ulang di prelive-oauth2.quran.foundation → Network tab → salin access_token baru ke QF_DEMO_ACCESS_TOKEN',
       userEnv,
     });
   }
 
-  const probeUrl = `${getUserAuthBaseUrl()}/v1/activity-days`;
+  const probeUrl = `${getUserAuthBaseUrl()}/v1/user/activity_days`;
   try {
     const probe = await fetch(probeUrl, {
       method: 'GET',
       headers: {
-        'x-auth-token': token,
+        Authorization:  `Bearer ${token}`,
         'x-client-id':  getUserClientId(),
         Accept:         'application/json',
       },
