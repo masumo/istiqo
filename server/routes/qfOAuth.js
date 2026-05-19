@@ -126,7 +126,6 @@ router.get('/callback', async (req, res) => {
     const body = new URLSearchParams({
       grant_type:    'authorization_code',
       client_id:     cfg.clientId,
-      client_secret: cfg.clientSecret,
       code:          String(code),
       redirect_uri:  cfg.redirectUri,
       code_verifier: entry.codeVerifier,
@@ -136,6 +135,7 @@ router.get('/callback', async (req, res) => {
       method: 'POST',
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
+        Authorization:  `Basic ${Buffer.from(`${cfg.clientId}:${cfg.clientSecret}`).toString('base64')}`,
       },
       body,
     });
