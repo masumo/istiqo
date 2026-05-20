@@ -68,7 +68,17 @@ async function proxyUserRequest(req, res, path, method = 'GET', body = null) {
 }
 
 // ── Activity Days ─────────────────────────────────────────────────────────────
-router.get('/activity-days', (req, res) => proxyUserRequest(req, res, '/v1/activity-days'));
+router.get('/activity-days', (req, res) => {
+  const qs = new URLSearchParams(
+    Object.entries(req.query || {}).flatMap(([k, v]) => {
+      if (v == null) return [];
+      if (Array.isArray(v)) return v.map((vv) => [k, String(vv)]);
+      return [[k, String(v)]];
+    })
+  ).toString();
+  const path = `/v1/activity-days${qs ? `?${qs}` : ''}`;
+  return proxyUserRequest(req, res, path);
+});
 
 router.post('/activity-days', (req, res) =>
   proxyUserRequest(req, res, '/v1/activity-days', 'POST', req.body)
